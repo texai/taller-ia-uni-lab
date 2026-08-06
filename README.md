@@ -16,9 +16,16 @@ Los modelos funcionan. Hasta que dejan de funcionar.
 
 Entra una campaña promocional más agresiva que cualquiera del entrenamiento y
 una categoría entera empieza a fallar en las 24 tiendas a la vez. O peor: la
-demanda cae despacio, el modelo sigue pronosticando como antes, y la cadena
-acumula sobre-stock durante tres semanas. El MAPE se mantiene bajo el umbral de
-alerta. Nadie se entera.
+demanda cae despacio en toda la cadena, el modelo sigue pronosticando como
+antes, y se acumula sobre-stock durante tres semanas.
+
+Ese segundo caso no dispara ninguna alarma, y vale la pena ver por qué. El
+error medio pasa de 13.8% a 14.5%: se mueve menos que entre dos semanas
+cualesquiera. Los modelos que cruzan el umbral de alerta pasan de 7 a 14 sobre
+192 — nadie levanta el teléfono por eso. Pero el sesgo va de +0.7% a +4.7%, seis
+veces, y eso son **36,000 unidades de más** en almacén. Un mismo cambio en el
+mundo: una señal apenas tiembla, la otra se multiplica. Solo una de las dos
+está hablando de plata.
 
 Hoy alguien abre un Excel los lunes y revisa las cinco categorías más grandes.
 Los otros 152 modelos nadie los mira.

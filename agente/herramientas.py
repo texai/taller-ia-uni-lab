@@ -35,7 +35,7 @@ TIEMPO_ESPERA = 60.0
 # contra la flota sana, donde el MAPE de una categoria sube hasta 20% solo por
 # alejarse de su fecha de entrenamiento y el sesgo no se mueve ni 1.1 puntos.
 MIN_DELTA_MAPE_PCT = 25.0
-MIN_DELTA_SESGO_PP = 5.0
+MIN_DELTA_SESGO_PP = 3.0
 
 
 def _get(ruta: str, **params) -> Any:
@@ -344,38 +344,68 @@ def detectar_anomalias(dias: int = 21) -> dict:
 
     fin = _ultima_fecha(filas)
     corte = fin - timedelta(days=dias - 1)
+    inicio_ref = corte - timedelta(days=45)
 
-    por_tienda: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    # La referencia se toma de ANTES de la ventana que se inspecciona. Medir
+    # lo normal con los mismos dias que se estan auditando es como preguntarle
+    # a la caida si es una caida: si la tienda lleva tres semanas muda, su
+    # mediana recientes es cero y la averia pasa por ser lo habitual.
+    referencia: dict[str, list[float]] = defaultdict(list)
+    reciente: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    dias_vistos: set[str] = set()
     for f in filas:
-        if date.fromisoformat(f["fecha"]) >= corte:
-            por_tienda[f["tienda"]][f["fecha"]] += f["unidades_reales"]
+        d = date.fromisoformat(f["fecha"])
+        if inicio_ref <= d < corte:
+            referencia[f["tienda"]].append(f["unidades_reales"])
+        elif d >= corte:
+            reciente[f["tienda"]][f["fecha"]] += f["unidades_reales"]
+            dias_vistos.add(f["fecha"])
 
     hallazgos = []
-    for tienda, por_dia in por_tienda.items():
-        serie = [por_dia[k] for k in sorted(por_dia)]
-        if len(serie) < 7:
+    esperados = sorted(dias_vistos)
+    for tienda, dias_ref in sorted(referencia.items()):
+        if len(dias_ref) < 7:
             continue
-        mediana = statistics.median(serie)
-        if mediana <= 0:
+        # La referencia es por modelo-dia; la ventana se agrega por dia de
+        # tienda, asi que se escala por el numero de modelos de la tienda.
+        n_modelos = max(1, len({f["modelo_id"] for f in filas if f["tienda"] == tienda}))
+        normal = statistics.median(dias_ref) * n_modelos
+        if normal <= 0:
             continue
-        dias_caidos = [
-            fecha
-            for fecha in sorted(por_dia)
-            if por_dia[fecha] < mediana * 0.2
-        ]
-        if dias_caidos:
+
+        por_dia = reciente.get(tienda, {})
+        sin_datos = [d for d in esperados if d not in por_dia]
+        caidos = [d for d in sorted(por_dia) if por_dia[d] < normal * 0.2]
+
+        if sin_datos:
+            hallazgos.append(
+                {
+                    "tipo": "sin_telemetria",
+                    "tienda": tienda,
+                    "dias_afectados": len(sin_datos),
+                    "desde": sin_datos[0],
+                    "hasta": sin_datos[-1],
+                    "volumen_normal_diario": round(normal),
+                    "nota": (
+                        "La tienda dejo de reportar. No llegan datos: el modelo "
+                        "no se degrado, se quedo ciego. Reentrenar aqui seria un "
+                        "error caro. Revisar el feed."
+                    ),
+                }
+            )
+        if caidos:
             hallazgos.append(
                 {
                     "tipo": "caida_de_volumen",
                     "tienda": tienda,
-                    "dias_afectados": len(dias_caidos),
-                    "desde": dias_caidos[0],
-                    "hasta": dias_caidos[-1],
-                    "volumen_mediano": round(mediana),
+                    "dias_afectados": len(caidos),
+                    "desde": caidos[0],
+                    "hasta": caidos[-1],
+                    "volumen_normal_diario": round(normal),
                     "volumen_en_caida": round(
-                        statistics.fmean(por_dia[d] for d in dias_caidos)
+                        statistics.fmean(por_dia[d] for d in caidos)
                     ),
-                    "nota": "Volumen casi nulo sostenido. Revisar el feed de ventas antes de culpar al modelo.",
+                    "nota": "Volumen casi nulo sostenido. Revisar el feed antes de culpar al modelo.",
                 }
             )
 
