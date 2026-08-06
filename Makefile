@@ -63,6 +63,9 @@ memoria:  ## Que recuerda el agente. ARGS="--limpiar" para borrarla
 actuar:  ## Corrida CON permiso para reentrenar de verdad. Ojo con lo que pides
 	$(COMPOSE) run --rm -e EJECUTAR_ACCIONES=1 agente python -m agente run $(ARGS)
 
+verificar:  ## Comprueba que todo funciona. ARGS="--con-llm" para la version completa
+	$(COMPOSE) run --rm agente python -m retos.verificar $(ARGS)
+
 ui:  ## Abre la interfaz en http://localhost:8501
 	$(COMPOSE) up -d ui
 	@echo "http://localhost:8501"

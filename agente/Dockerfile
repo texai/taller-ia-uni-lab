@@ -6,6 +6,8 @@ COPY agente/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY agente/ ./agente/
+# El verificador vive en retos/ y corre desde aca.
+COPY retos/ ./retos/
 
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1

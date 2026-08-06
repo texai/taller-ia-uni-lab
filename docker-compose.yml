@@ -28,6 +28,7 @@ services:
       URL_PLATAFORMA: http://plataforma:8000
     volumes:
       - ./agente:/app/agente
+      - ./retos:/app/retos
       - memoria:/memoria
     depends_on:
       plataforma:

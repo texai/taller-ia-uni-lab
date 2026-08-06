@@ -148,6 +148,12 @@ def resumen_flota(dias: int = 14) -> dict:
     mismo. El sesgo dice hacia que lado se equivoca el modelo, y un sesgo
     sostenido cuesta plata aunque el MAPE se vea normal.
 
+    `cobertura` es la fraccion de dias en que la venta real cayo DENTRO del
+    intervalo de prediccion del modelo. Lo esperable ronda 0.9. Baja no
+    significa que falten datos ni que el modelo no haya corrido: significa que
+    el modelo predice con mas confianza de la que merece. Un modelo puede
+    tener cobertura 0.07 y aun asi haber pronosticado los 30 dias.
+
     Ojo con el nivel al que miras. El sesgo de la flota es lo que le importa
     al negocio, porque los excesos de un modelo compensan los faltantes de
     otro en el mismo almacen. Un modelo suelto tiene un sesgo propio de
@@ -475,7 +481,12 @@ def detalle_modelo(modelo_id: str, dias: int = 30) -> dict:
 
     El identificador es `dem-<categoria>-<tienda>`, por ejemplo
     `dem-panaderia-callao`. No lo inventes: sale de listar_modelos o de las
-    listas de peores en resumen_flota."""
+    listas de peores en resumen_flota.
+
+    En la vista diaria `cobertura` vale 0 o 1: si la venta de ese dia cayo
+    dentro del intervalo de prediccion, o no. Una fila con cobertura 0 NO es
+    un dia sin datos -- tiene su pronostico y su venta real, ahi al lado. Para
+    saber si faltan datos, mira `detectar_anomalias`."""
     filas = _metricas(modelo_id=modelo_id)
     if filas:
         return {"modelo_id": modelo_id, "dias": filas[-dias:]}

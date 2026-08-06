@@ -153,6 +153,8 @@ make              # lista todos los comandos disponibles
 | `make romper ESCENARIO=...` | Degrada el mundo |
 | `make reparar` | Vuelve al mundo sano |
 | `make reset` | Botón de pánico: borra todo y reconstruye |
+| `make verificar` | Comprueba que todo el laboratorio funciona |
+| `make verificar ARGS="--con-llm"` | Ídem, corriendo el agente de verdad |
 
 **Escenarios de degradación:** `campana_promocional`, `sesgo_silencioso`,
 `feed_caido`, `quiebre_stock`.

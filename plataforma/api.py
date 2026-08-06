@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import csv
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
@@ -27,8 +27,11 @@ from plataforma.config import (
     RUTA_PREDICCIONES,
     RUTA_VENTAS,
 )
+from plataforma.datos import generar
 from plataforma.entrenar import entrenar
-from plataforma.pronosticar import RUTA_LOG_JOB
+from plataforma.escenario import ESCENARIOS, aplicar
+from plataforma.metricas import calcular
+from plataforma.pronosticar import RUTA_LOG_JOB, pronosticar as correr_job
 
 app = FastAPI(
     title="Plataforma de pronostico de demanda",
@@ -205,3 +208,39 @@ def reentrenamientos() -> list[dict[str, Any]]:
     if not RUTA_LOG_REENTRENAMIENTOS.exists():
         return []
     return json.loads(RUTA_LOG_REENTRENAMIENTOS.read_text(encoding="utf-8"))
+
+
+class PeticionMundo(BaseModel):
+    """Que estado del mundo montar. Sin escenario, el mundo sano."""
+
+    escenario: str | None = None
+
+
+@app.post("/v1/laboratorio/mundo")
+def montar_mundo(peticion: PeticionMundo) -> dict[str, Any]:
+    """Regenera el historico, aplica un escenario y recalcula todo.
+
+    Maquinaria de laboratorio, no capacidad del agente: esta ruta NO esta
+    entre sus herramientas y el no puede alcanzarla. Existe para que el
+    verificador pueda montar cada mundo sin depender de la linea de comandos,
+    y equivale a: make reparar && make romper ESCENARIO=...
+    """
+    if peticion.escenario and peticion.escenario not in ESCENARIOS:
+        raise HTTPException(
+            400, f"Escenario desconocido: {peticion.escenario}. Opciones: {ESCENARIOS}"
+        )
+    generar()
+    if peticion.escenario:
+        aplicar(peticion.escenario)
+    # Mismo corte que la CLI: los modelos ya entrenados no se tocan, se
+    # repronostica sobre el mundo nuevo. Reentrenar aqui borraria la evidencia
+    # de la degradacion que acabamos de provocar.
+    corte = date.today() - timedelta(days=91)
+    corrida = correr_job(desde=corte + timedelta(days=1), hasta=date.today(),
+                         verbose=False)
+    metricas_calculadas = calcular()
+    return {
+        "escenario": peticion.escenario or "sano",
+        "predicciones": corrida.get("predicciones"),
+        "filas_metricas": metricas_calculadas.get("filas"),
+    }
