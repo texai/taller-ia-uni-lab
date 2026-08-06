@@ -267,7 +267,9 @@ Reglas:
 def construir():
     g = StateGraph(Estado)
     g.add_node("percepcion", percepcion)
-    g.add_node("herramientas", ToolNode(HERRAMIENTAS))
+    # ToolNode lee y escribe en la clave "messages" por omision. Nuestro estado
+    # la llama "mensajes", asi que hay que decirselo o no encuentra la llamada.
+    g.add_node("herramientas", ToolNode(HERRAMIENTAS, messages_key="mensajes"))
     g.add_node("diagnostico", diagnostico)
     g.add_node("reflexion", reflexion)
     g.add_node("recomendacion", recomendacion)
