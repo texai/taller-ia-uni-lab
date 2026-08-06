@@ -33,6 +33,7 @@ CAMPOS = [
     "cobertura",
     "latencia_p95_ms",
     "unidades_reales",
+    "unidades_pronosticadas",
     "dias_en_promocion",
     "dias_con_quiebre",
 ]
@@ -79,6 +80,11 @@ def calcular(desde: date | None = None, hasta: date | None = None) -> dict:
                 "cobertura": round(float(g["dentro"].mean()), 4),
                 "latencia_p95_ms": int(g["latencia_ms"].quantile(0.95)),
                 "unidades_reales": round(float(g["unidades"].sum()), 2),
+                # Se guardan las unidades, no solo el porcentaje, porque el
+                # sesgo de un grupo NO es el promedio de los sesgos de sus
+                # partes: es la diferencia de sus totales. Sin estas dos
+                # columnas cualquier agregacion queda inflada.
+                "unidades_pronosticadas": round(float(g["prediccion"].sum()), 2),
                 "dias_en_promocion": int(g["en_promocion"].sum()),
                 "dias_con_quiebre": int(g["quiebre_stock"].sum()),
             }

@@ -48,7 +48,11 @@ ultimos = metricas[metricas["fecha"] >= metricas["fecha"].max() - pd.Timedelta(d
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Modelos", metricas["modelo_id"].nunique())
 c2.metric("MAPE medio", f"{ultimos['mape'].mean():.1f}%")
-c3.metric("Sesgo medio", f"{ultimos['sesgo_pct'].mean():+.1f}%")
+# Cociente de totales, no promedio de porcentajes: ver _sesgo en herramientas.
+_sesgo_flota = (
+    ultimos["unidades_pronosticadas"].sum() / ultimos["unidades_reales"].sum() - 1
+) * 100
+c3.metric("Sesgo", f"{_sesgo_flota:+.1f}%")
 c4.metric("Cobertura", f"{ultimos['cobertura'].mean():.1%}")
 
 st.subheader("MAPE por categoria")

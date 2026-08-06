@@ -31,6 +31,12 @@ from scipy import stats
 URL = os.getenv("URL_PLATAFORMA", "http://plataforma:8000")
 TIEMPO_ESPERA = 60.0
 
+# Cuanto tiene que moverse una senal para que valga la pena mirarla. Medidos
+# contra la flota sana, donde el MAPE de una categoria sube hasta 20% solo por
+# alejarse de su fecha de entrenamiento y el sesgo no se mueve ni 1.1 puntos.
+MIN_DELTA_MAPE_PCT = 25.0
+MIN_DELTA_SESGO_PP = 5.0
+
 
 def _get(ruta: str, **params) -> Any:
     limpios = {k: v for k, v in params.items() if v is not None}
@@ -55,6 +61,36 @@ def _ultima_fecha(filas: list[dict]) -> date:
 def _media(valores) -> float:
     vals = [v for v in valores if v is not None]
     return round(statistics.fmean(vals), 3) if vals else 0.0
+
+
+def _percentil(valores: list[float], p: int) -> float:
+    vals = sorted(v for v in valores if v is not None)
+    if not vals:
+        return 0.0
+    i = min(len(vals) - 1, int(round((p / 100) * (len(vals) - 1))))
+    return round(vals[i], 3)
+
+
+def _sesgo(filas) -> float:
+    """Sesgo de un conjunto de filas, en porcentaje.
+
+    Se calcula como cociente de totales -- cuantas unidades de mas se
+    pronostico sobre cuantas se vendieron -- y NO como promedio de los
+    sesgos diarios. La diferencia no es cosmetica: el promedio de cocientes
+    esta sesgado hacia arriba, porque un dia de venta baja infla su propio
+    porcentaje sin mover casi nada el total. Con esa cuenta, una categoria
+    con muchas promociones parece sobre-pronosticada aunque no lo este.
+
+    Asi ademas el numero significa algo en el mundo: +12% son 12% de unidades
+    de mas en almacen.
+    """
+    reales = pronosticadas = 0.0
+    for f in filas:
+        reales += float(f.get("unidades_reales") or 0.0)
+        pronosticadas += float(f.get("unidades_pronosticadas") or 0.0)
+    if reales <= 0:
+        return 0.0
+    return round((pronosticadas - reales) / reales * 100, 3)
 
 
 # --------------------------------------------------------------------------
@@ -95,7 +131,16 @@ def resumen_flota(dias: int = 14) -> dict:
     Es el punto de partida de cualquier diagnostico. Fijate en las dos
     senales por separado: un MAPE alto y un sesgo alto NO significan lo
     mismo. El sesgo dice hacia que lado se equivoca el modelo, y un sesgo
-    sostenido cuesta plata aunque el MAPE se vea normal."""
+    sostenido cuesta plata aunque el MAPE se vea normal.
+
+    Ojo con el nivel al que miras. El sesgo de la flota es lo que le importa
+    al negocio, porque los excesos de un modelo compensan los faltantes de
+    otro en el mismo almacen. Un modelo suelto tiene un sesgo propio de
+    varios puntos incluso cuando todo esta bien: por eso viene la
+    distribucion (`sesgo_modelo_mediana`, `sesgo_modelo_p90`). Compara
+    contra ella antes de declarar que un modelo esta raro; contar cuantos
+    superan un umbral fijo, sin saber cual es la dispersion normal, no
+    dice nada."""
     filas = _metricas()
     if not filas:
         return {"error": "Sin telemetria. Corre: make seed"}
@@ -116,7 +161,7 @@ def resumen_flota(dias: int = 14) -> dict:
                 "tienda": fs[0]["tienda"],
                 "region": fs[0]["region"],
                 "mape": _media(f["mape"] for f in fs),
-                "sesgo_pct": _media(f["sesgo_pct"] for f in fs),
+                "sesgo_pct": _sesgo(fs),
                 "cobertura": _media(f["cobertura"] for f in fs),
                 "dias_en_promocion": sum(f["dias_en_promocion"] for f in fs),
                 "dias_con_quiebre": sum(f["dias_con_quiebre"] for f in fs),
@@ -130,10 +175,19 @@ def resumen_flota(dias: int = 14) -> dict:
         "modelos_evaluados": len(resumen),
         "global": {
             "mape_medio": _media(r["mape"] for r in resumen),
-            "sesgo_medio_pct": _media(r["sesgo_pct"] for r in resumen),
+            "sesgo_pct": _sesgo(v),
             "cobertura_media": _media(r["cobertura"] for r in resumen),
+            "unidades_de_mas": round(
+                sum(f["unidades_pronosticadas"] for f in v)
+                - sum(f["unidades_reales"] for f in v)
+            ),
             "modelos_con_mape_sobre_25": sum(r["mape"] > 25 for r in resumen),
-            "modelos_con_sesgo_sobre_10": sum(abs(r["sesgo_pct"]) > 10 for r in resumen),
+            "sesgo_modelo_mediana": _percentil(
+                [abs(r["sesgo_pct"]) for r in resumen], 50
+            ),
+            "sesgo_modelo_p90": _percentil(
+                [abs(r["sesgo_pct"]) for r in resumen], 90
+            ),
         },
         "peores_por_mape": sorted(resumen, key=lambda r: -r["mape"])[:8],
         "peores_por_sesgo": sorted(resumen, key=lambda r: -abs(r["sesgo_pct"]))[:8],
@@ -167,9 +221,13 @@ def agregado_por(dimension: str = "categoria", dias: int = 14) -> dict:
             dimension: clave,
             "n_modelos": len({f["modelo_id"] for f in fs}),
             "mape": _media(f["mape"] for f in fs),
-            "sesgo_pct": _media(f["sesgo_pct"] for f in fs),
+            "sesgo_pct": _sesgo(fs),
             "cobertura": _media(f["cobertura"] for f in fs),
             "unidades_reales": round(sum(f["unidades_reales"] for f in fs)),
+            "unidades_de_mas": round(
+                sum(f["unidades_pronosticadas"] for f in fs)
+                - sum(f["unidades_reales"] for f in fs)
+            ),
         }
         for clave, fs in grupos.items()
     ]
@@ -199,7 +257,19 @@ def comparar_periodos(
 
     Compara SIEMPRE los dos deltas. Que el MAPE se mueva poco mientras el
     sesgo se dispara es una senal distinta a que suban ambos, y suele ser la
-    mas cara."""
+    mas cara.
+
+    Cada senal trae su propia bandera, y no significan lo mismo:
+
+    - `deriva_de_error`: el MAPE empeoro de forma significativa Y apreciable.
+      Se piden las dos cosas porque con miles de dias-modelo el test da
+      significativo por diferencias que a nadie le importan. Toda la flota
+      pierde algo de precision con el correr de las semanas desde su
+      entrenamiento; eso es envejecimiento normal, no una alarma.
+    - `deriva_de_sesgo`: el modelo empezo a errar hacia un lado. Es la senal
+      cara y la mas silenciosa: no hace ruido en el MAPE y su linea base en
+      una flota sana es practicamente cero, asi que cuando se mueve, se movio
+      de verdad."""
     if dimension not in ("categoria", "tienda", "region"):
         return {"error": "dimension debe ser: categoria, tienda o region"}
 
@@ -233,14 +303,16 @@ def comparar_periodos(
                 "mape_base": mape_b,
                 "mape_reciente": mape_r,
                 "delta_mape_pct": round((mape_r - mape_b) / max(mape_b, 0.01) * 100, 1),
-                "sesgo_base": _media(f["sesgo_pct"] for f in b),
-                "sesgo_reciente": _media(f["sesgo_pct"] for f in r),
-                "delta_sesgo_pp": round(
-                    _media(f["sesgo_pct"] for f in r) - _media(f["sesgo_pct"] for f in b), 2
-                ),
+                "sesgo_base": _sesgo(b),
+                "sesgo_reciente": _sesgo(r),
+                "delta_sesgo_pp": round(_sesgo(r) - _sesgo(b), 2),
                 "ks": round(float(ks), 4),
                 "p_valor": round(float(p), 6),
-                "cambio_significativo": bool(p < 0.01),
+                "deriva_de_error": bool(
+                    p < 0.01
+                    and abs((mape_r - mape_b) / max(mape_b, 0.01) * 100) >= MIN_DELTA_MAPE_PCT
+                ),
+                "deriva_de_sesgo": bool(abs(_sesgo(r) - _sesgo(b)) >= MIN_DELTA_SESGO_PP),
             }
         )
 

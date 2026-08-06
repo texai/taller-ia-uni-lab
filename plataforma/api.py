@@ -35,6 +35,7 @@ NUMERICOS = {
     "cobertura": float,
     "latencia_p95_ms": int,
     "unidades_reales": float,
+    "unidades_pronosticadas": float,
     "dias_en_promocion": int,
     "dias_con_quiebre": int,
 }
