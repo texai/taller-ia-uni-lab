@@ -12,11 +12,17 @@ mismo registro que usaron en el Modulo 2.
 from __future__ import annotations
 
 import json
+import os
 from datetime import date
 
 import joblib
 import pandas as pd
 from sklearn.linear_model import Ridge
+
+# MLflow busca el SHA de git para etiquetar cada corrida. Dentro del contenedor
+# no hay git, y al no encontrarlo escupe un warning de veinte lineas que parece
+# un error grave y no lo es. Se lo decimos antes de importarlo.
+os.environ.setdefault("GIT_PYTHON_REFRESH", "quiet")
 
 try:
     import mlflow

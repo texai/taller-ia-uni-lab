@@ -42,9 +42,10 @@ recomendaciones.
 
 # Trabajo previo — hazlo ANTES del sábado
 
-> Unos 20 minutos, casi todos de descarga. **No lo dejes para el sábado**: si lo
-> haces a las 15:00 vas a pasar la primera hora bajando imágenes en vez de
-> construyendo el agente.
+> Unos 10 minutos, casi todos de descarga: la construcción de las imágenes
+> tarda ~3 minutos con buena conexión y `make seed` menos de 1. **No lo dejes
+> para el sábado**: si lo haces a las 15:00 vas a pasar la primera hora bajando
+> imágenes en vez de construyendo el agente.
 
 ## 1. Verifica lo que ya tienes
 
@@ -75,8 +76,15 @@ make arriba
 make seed
 ```
 
-`make seed` genera el histórico de ventas, entrena los 192 modelos, corre el job
-de pronóstico y calcula las métricas. Tarda unos minutos la primera vez.
+`make arriba` construye las imágenes la primera vez (~3 min) y levanta la
+plataforma. `make seed` genera el histórico de ventas, entrena los 192 modelos,
+corre el job de pronóstico y calcula las métricas (~1 min).
+
+Al final debes ver:
+
+```
+Listo. 192 modelos con 17,472 dias-modelo de telemetria.
+```
 
 ## 3. Consigue tu llave
 
