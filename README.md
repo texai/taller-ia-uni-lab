@@ -40,6 +40,7 @@ Un **agente generativo con arquitectura cognitiva** que vigila la flota:
 | **Memoria** | Recuerda diagnósticos previos: no repite alertas ni se contradice |
 | **Razonamiento** | Decide qué mirar, correlaciona señales, formula una hipótesis |
 | **Reflexión** | Cuestiona su propio diagnóstico antes de emitirlo |
+| **Revisión** | Si la crítica se sostiene, reescribe el diagnóstico |
 | **Acción** | Emite una recomendación fundamentada y dispara el reentrenamiento |
 
 Más una **interfaz web** que muestra su ejecución paso a paso, el análisis y las

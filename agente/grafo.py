@@ -1,8 +1,10 @@
 """La arquitectura cognitiva del agente, como grafo de LangGraph.
 
     percepcion  ->  diagnostico  ->  reflexion  ->  recomendacion
-         ^                              |
-         +---------- (una vuelta) ------+
+         ^                              |   |            ^
+         +------ (falta evidencia) -----+   |            |
+                                            +-> revision +
+                                        (la critica quedo en pie)
 
 Cada nodo tiene un trabajo y solo uno:
 
@@ -10,12 +12,16 @@ Cada nodo tiene un trabajo y solo uno:
   No concluye nada.
 - **diagnostico**: convierte la evidencia en una hipotesis, con alcance
   (un modelo / una categoria / una tienda / la flota) y severidad.
-- **reflexion**: intenta refutar la hipotesis. Si la evidencia no la sostiene,
-  devuelve el control a percepcion UNA vez para buscar lo que falta.
+- **reflexion**: intenta refutar la hipotesis. Si le falta evidencia, devuelve
+  el control a percepcion para buscarla.
+- **revision**: si la critica sigue en pie y ya no quedan vueltas, reescribe
+  el diagnostico haciendose cargo de ella.
 - **recomendacion**: emite acciones concretas y accionables.
 
 La reflexion es lo que separa a este agente de un dashboard con umbrales:
-antes de alertar, se cuestiona a si mismo.
+antes de alertar, se cuestiona a si mismo. Pero cuestionarse sin poder
+corregirse no sirve de nada -- el diagnostico saldria contradiciendo a sus
+propias recomendaciones -- y por eso existe revision.
 """
 
 from __future__ import annotations
@@ -78,6 +84,11 @@ Lo que debes tener presente:
   el MAPE es la senal ruidosa. Ordenalos por lo que las banderas digan.
 - Si ninguna bandera se encendio y no hay anomalias, el diagnostico correcto
   es "sin_hallazgos". Una guardia tranquila es un resultado, no un fracaso.
+  Pero al reves vale igual: si las banderas SI se encendieron, hay hallazgo,
+  y punto. Los umbrales ya hicieron el trabajo de separar senal de ruido; no
+  pidas mas datos para creerles. No saber por que ocurrio algo no es lo mismo
+  que no saber si ocurrio: puedes reportar una deriva confirmada y dejar su
+  causa abierta. Callartela porque te falta la explicacion es el error caro.
 """
 
 
@@ -230,11 +241,48 @@ prurito. Si el diagnostico se sostiene, confirmalo."""
     }
 
 
-def _tras_reflexion(estado: Estado) -> Literal["percepcion", "recomendacion"]:
-    insuficiente = estado["critica"].get("veredicto") == "insuficiente"
-    if insuficiente and estado.get("vueltas", 0) < MAX_VUELTAS:
+def _tras_reflexion(estado: Estado) -> Literal["percepcion", "revision", "recomendacion"]:
+    if estado["critica"].get("veredicto") != "insuficiente":
+        return "recomendacion"
+    # Todavia quedan vueltas: falta mirar algo, se vuelve a percibir.
+    if estado.get("vueltas", 0) < MAX_VUELTAS:
         return "percepcion"
-    return "recomendacion"
+    # Se acabaron las vueltas y la critica sigue en pie. Emitir igual el
+    # diagnostico que la critica acaba de demoler seria absurdo: la reflexion
+    # podria objetar pero nunca enmendar, y el titular quedaria contradiciendo
+    # a las recomendaciones que salen abajo.
+    return "revision"
+
+
+def revision(estado: Estado) -> dict:
+    """Reescribe el diagnostico haciendose cargo de sus propias objeciones."""
+    llm = obtener_llm()
+    peticion = HumanMessage(
+        content=f"""Tu propia critica dejo tu diagnostico en pie de guerra.
+
+Diagnostico emitido:
+{json.dumps(estado['hipotesis'], ensure_ascii=False, indent=2)}
+
+Objeciones que le hiciste:
+{json.dumps(estado['critica'].get('objeciones', []), ensure_ascii=False, indent=2)}
+
+Reescribelo haciendote cargo de ellas. Ya no vas a mirar mas evidencia: con
+la que tienes alcanza, y es la misma que sostiene tus objeciones.
+
+- Si la critica dice que declaraste "sin_hallazgos" habiendo hallazgos,
+  corrige el tipo. Que no sepas la causa ultima no significa que no haya nada:
+  una deriva confirmada es un hallazgo aunque su origen quede abierto.
+- Si dice que el alcance estaba mal, corrigelo. Si una senal aparece en todos
+  los grupos, el alcance es la flota.
+- Si dice que exageraste, baja la severidad.
+
+Responde SOLO con el JSON del diagnostico, en el mismo formato de antes."""
+    )
+    respuesta = llm.invoke(estado["mensajes"] + [peticion])
+    return {
+        "hipotesis": _json_de(respuesta, estado["hipotesis"]),
+        "mensajes": [peticion, respuesta],
+    }
 
 
 def recomendacion(estado: Estado) -> dict:
@@ -300,6 +348,7 @@ def construir():
     g.add_node("herramientas", ToolNode(HERRAMIENTAS, messages_key="mensajes"))
     g.add_node("diagnostico", diagnostico)
     g.add_node("reflexion", reflexion)
+    g.add_node("revision", revision)
     g.add_node("recomendacion", recomendacion)
 
     g.add_edge(START, "percepcion")
@@ -307,6 +356,7 @@ def construir():
     g.add_edge("herramientas", "percepcion")
     g.add_edge("diagnostico", "reflexion")
     g.add_conditional_edges("reflexion", _tras_reflexion)
+    g.add_edge("revision", "recomendacion")
     g.add_edge("recomendacion", END)
 
     return g.compile()

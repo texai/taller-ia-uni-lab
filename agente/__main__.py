@@ -45,8 +45,9 @@ def correr(fecha: date | None, verboso: bool) -> None:
     hipotesis = final.get("hipotesis", {})
     critica = final.get("critica", {})
     recomendaciones = final.get("recomendaciones", [])
+    corregido = critica.get("veredicto") == "insuficiente"
 
-    _linea("DIAGNÓSTICO")
+    _linea("DIAGNÓSTICO (reescrito tras la reflexión)" if corregido else "DIAGNÓSTICO")
     print(f"  {hipotesis.get('titulo', '(sin título)')}")
     print(f"  tipo: {hipotesis.get('tipo')} · alcance: {hipotesis.get('alcance')} "
           f"· severidad: {hipotesis.get('severidad')}")
@@ -62,6 +63,8 @@ def correr(fecha: date | None, verboso: bool) -> None:
     print(f"  veredicto: {critica.get('veredicto')} · vueltas: {final.get('vueltas', 0)}")
     for o in critica.get("objeciones", []):
         print(f"    · {o}")
+    if corregido:
+        print("\n  El diagnóstico de arriba ya incorpora estas objeciones.")
 
     _linea("RECOMENDACIONES")
     for r in recomendaciones:
