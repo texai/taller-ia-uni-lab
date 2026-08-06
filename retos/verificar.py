@@ -251,7 +251,13 @@ def main() -> None:
             reto_5(r)
     except Exception as e:  # noqa: BLE001
         print(f"\n{ROJO}La verificacion se cayo: {type(e).__name__}: {e}{FIN}")
-        print("¿Esta levantado el entorno?  make arriba && make seed")
+        if "404" in str(e):
+            # Sintoma clasico: el contenedor lleva rato arriba y sirve el
+            # codigo con el que arranco, no el que acabas de traer.
+            print("Un 404 en una ruta que existe suele ser una plataforma vieja.")
+            print("Reiniciala:  make abajo && make arriba")
+        else:
+            print("¿Esta levantado el entorno?  make arriba && make seed")
         sys.exit(2)
 
     print()
