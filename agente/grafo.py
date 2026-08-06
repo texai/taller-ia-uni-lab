@@ -66,7 +66,18 @@ Lo que debes tener presente:
 - La forma del problema importa mas que su tamano. Si la degradacion aparece
   en una categoria a lo largo de todas las tiendas, la causa es del producto.
   Si aparece en una tienda a lo largo de todas las categorias, la causa es de
-  esa tienda.
+  esa tienda. Y si aparece en TODAS, la causa no es de ninguna: es de la
+  cadena, y el alcance correcto es la flota entera.
+- Un nivel no es un cambio. Que una categoria tenga 6% de sesgo no dice nada
+  por si solo: puede llevar asi todo el año. Lo que importa es cuanto se
+  movio contra su linea base.
+- Las herramientas ya descartaron el ruido por ti. Toda la flota pierde algo
+  de precision con las semanas, asi que un delta abultado SIN su bandera
+  encendida es envejecimiento normal, ya evaluado y descartado: no lo cites
+  como evidencia de deriva. Y no ordenes tus hallazgos por el delta de MAPE;
+  el MAPE es la senal ruidosa. Ordenalos por lo que las banderas digan.
+- Si ninguna bandera se encendio y no hay anomalias, el diagnostico correcto
+  es "sin_hallazgos". Una guardia tranquila es un resultado, no un fracaso.
 """
 
 

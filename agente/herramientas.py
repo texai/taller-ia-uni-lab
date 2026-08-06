@@ -284,7 +284,13 @@ def comparar_periodos(
     - `deriva_de_sesgo`: el modelo empezo a errar hacia un lado. Es la senal
       cara y la mas silenciosa: no hace ruido en el MAPE y su linea base en
       una flota sana es practicamente cero, asi que cuando se mueve, se movio
-      de verdad."""
+      de verdad.
+
+    Empieza por `resumen`, no por las filas. Un delta grande sin su bandera
+    encendida es ruido que ya fue descartado; si las dos listas vienen
+    vacias, no hay deriva y no hace falta buscarle una. Y mira CUANTOS
+    grupos aparecen, no solo cuales: si casi todos movieron la misma senal,
+    la causa no puede ser de ninguno de ellos en particular."""
     if dimension not in UMBRALES:
         return {"error": f"dimension debe ser: {', '.join(UMBRALES)}"}
     min_mape, min_sesgo = UMBRALES[dimension]
@@ -332,11 +338,26 @@ def comparar_periodos(
             }
         )
 
+    todas_b = [f for fs in base.values() for f in fs]
+    todas_r = [f for fs in reciente.values() for f in fs]
+
     return {
         "dimension": dimension,
         "base": {"desde": inicio_base.isoformat(), "hasta": (corte - timedelta(days=1)).isoformat()},
         "reciente": {"desde": corte.isoformat(), "hasta": fin.isoformat()},
-        "grupos": sorted(salida, key=lambda g: -abs(g["delta_mape_pct"])),
+        # El recuento va primero y a proposito. Leer ocho filas de deltas
+        # invita a quedarse con las dos mas grandes; saber que ocho de ocho
+        # grupos movieron el sesgo dice algo que ninguna fila dice sola.
+        "resumen": {
+            "grupos_evaluados": len(salida),
+            "umbrales_usados": {"delta_mape_pct": min_mape, "delta_sesgo_pp": min_sesgo},
+            "con_deriva_de_error": [g[dimension] for g in salida if g["deriva_de_error"]],
+            "con_deriva_de_sesgo": [g[dimension] for g in salida if g["deriva_de_sesgo"]],
+            "sesgo_flota_base_pct": _sesgo(todas_b),
+            "sesgo_flota_reciente_pct": _sesgo(todas_r),
+            "delta_sesgo_flota_pp": round(_sesgo(todas_r) - _sesgo(todas_b), 2),
+        },
+        "grupos": sorted(salida, key=lambda g: -abs(g["delta_sesgo_pp"])),
     }
 
 
