@@ -132,8 +132,13 @@ virtual con el error exacto que te aparece.
 ## Referencia
 
 ```bash
-make              # lista todos los comandos disponibles
+make              # lista todos los comandos disponibles   (macOS / Linux)
+.\taller.ps1      # lo mismo, desde PowerShell             (Windows)
 ```
+
+> **Windows:** `make` no viene con el sistema. `taller.ps1` hace exactamente lo
+> mismo desde PowerShell, sin necesidad de WSL2. Donde este README diga
+> `make X`, tú escribes `.\taller.ps1 X`.
 
 | Comando | Qué hace |
 |---|---|

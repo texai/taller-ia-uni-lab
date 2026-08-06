@@ -1,0 +1,12 @@
+# Todo el repositorio se clona con finales de linea LF, tambien en Windows.
+#
+# Sin esto, Git en Windows convierte a CRLF al clonar. Los archivos se ven
+# bien en el editor, pero adentro de un contenedor Linux un CRLF de mas
+# produce errores que no se parecen en nada a su causa. Es de los problemas
+# mas caros de diagnosticar en clase, y se evita con una linea.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.joblib binary
+*.pdf binary

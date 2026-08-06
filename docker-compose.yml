@@ -11,6 +11,12 @@ services:
     volumes:
       - datos:/datos
       - ./plataforma:/app/plataforma
+    environment:
+      # uvicorn --reload escucha avisos del sistema de archivos. Esos avisos no
+      # cruzan el montaje de Windows a contenedor, asi que ahi la recarga no
+      # ocurriria y un `git pull` pareceria no haber hecho nada. Sondear cuesta
+      # algo de CPU y funciona igual en los tres sistemas operativos.
+      WATCHFILES_FORCE_POLLING: "true"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/salud')"]
       interval: 10s
