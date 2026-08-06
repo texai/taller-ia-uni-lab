@@ -20,9 +20,6 @@ listo **antes**. Entre 20 y 30 minutos, casi todos de descarga.
 > veinte personas lo hacemos a la vez sobre el wifi del aula, la primera hora
 > se nos va mirando barras de progreso. Y esa hora es la del caso.
 
-Si algo no te funciona, escribe al foro del aula virtual **antes del viernes**,
-con el error exacto copiado y pegado. Te respondo.
-
 ---
 
 ## Lo que vas a construir
@@ -44,7 +41,7 @@ que vas a construir es el agente que los vigila.
 
 ## 0 · Lo que necesitas
 
-| | |
+| Requisito | Detalle |
 |---|---|
 | **Docker Desktop** | Con Docker Compose (viene incluido) |
 | **Disco** | **12 GB libres.** Es bastante; más abajo explico por qué y cómo recuperar 4 GB al terminar |
@@ -308,18 +305,13 @@ llamada corta para confirmar que el proveedor responde.
 | La UI dice *no hay telemetria todavia* | Falta el paso de datos | Corre `seed` |
 | El agente responde con `[modelo simulado]` | No hay llave configurada | Revisa `PROVEEDOR_LLM` en tu `.env` |
 
-Dos comandos que sirven para casi todo:
+Dos comandos que sirven para casi todo, más el botón de pánico:
 
-```
-.\taller.ps1 estado        make estado      # qué contenedores corren
-.\taller.ps1 logs          make logs        # qué dijeron
-```
-
-Y el botón de pánico, que borra todo y reconstruye desde cero:
-
-```
-.\taller.ps1 reset         make reset
-```
+| Qué hace | Windows | macOS / Linux |
+|---|---|---|
+| Qué contenedores corren | `.\taller.ps1 estado` | `make estado` |
+| Qué dijeron | `.\taller.ps1 logs` | `make logs` |
+| Borra todo y reconstruye | `.\taller.ps1 reset` | `make reset` |
 
 Si nada de esto lo arregla, **escribe al foro antes del viernes** con:
 
@@ -337,8 +329,6 @@ Si nada de esto lo arregla, **escribe al foro antes del viernes** con:
 - **No necesitas repasar estadística.** Lo que haga falta lo vemos en su
   momento, aplicado.
 - **No hay entregable ni examen.** El taller se evalúa por asistencia.
-
-Lo único que sí te pido: que llegues con las 24 comprobaciones en verde.
 
 ---
 
