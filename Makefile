@@ -1,5 +1,20 @@
 .DEFAULT_GOAL := ayuda
-COMPOSE := docker compose
+
+# Compose v2 es un plugin de docker ("docker compose"); v1 es un binario
+# aparte ("docker-compose"). Detectamos cual existe para no obligar a nadie a
+# reinstalar Docker el sabado por la manana.
+COMPOSE := $(shell docker compose version >/dev/null 2>&1 && echo "docker compose" \
+                   || (command -v docker-compose >/dev/null 2>&1 && echo "docker-compose") \
+                   || echo "NO_COMPOSE")
+
+ifeq ($(COMPOSE),NO_COMPOSE)
+$(warning )
+$(warning No encuentro Docker Compose. Instala Docker Desktop, que lo trae incluido:)
+$(warning   https://www.docker.com/products/docker-desktop/)
+$(warning Verifica luego con:  docker compose version)
+$(warning )
+$(error Falta Docker Compose)
+endif
 EN_PLATAFORMA := $(COMPOSE) run --rm plataforma python -m plataforma
 EN_AGENTE := $(COMPOSE) run --rm agente python -m agente
 

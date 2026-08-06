@@ -54,6 +54,17 @@ docker compose version    # Compose v2
 git --version
 ```
 
+**Si `docker compose version` responde `unknown command`**, te falta Compose.
+Prueba primero con guion, que es la versión antigua:
+
+```bash
+docker-compose --version
+```
+
+Si tampoco responde, instala [Docker Desktop](https://www.docker.com/products/docker-desktop/),
+que trae Compose incluido. El `Makefile` detecta solo cuál de los dos tienes,
+así que con cualquiera de los dos los comandos de abajo funcionan igual.
+
 ## 2. Levanta el entorno
 
 ```bash
