@@ -71,7 +71,6 @@ así que con cualquiera de los dos los comandos de abajo funcionan igual.
 git clone https://github.com/texai/taller-ia-uni-lab.git
 cd taller-ia-uni-lab
 cp .env.example .env
-docker compose build
 make arriba
 make seed
 ```
@@ -129,6 +128,9 @@ make              # lista todos los comandos disponibles
 | `make pronosticar` | Corre el job batch |
 | `make metricas` | Cruza pronóstico contra realidad |
 | `make agente` | Una corrida del agente |
+| `make agente ARGS="--verboso"` | Una corrida mostrando las herramientas que llamó |
+| `make memoria` | Qué diagnósticos recuerda el agente |
+| `make memoria ARGS="--limpiar"` | Borra la memoria |
 | `make ui` | Interfaz en http://localhost:8501 |
 | `make mlflow` | Registro de modelos en http://localhost:5000 |
 | `make romper ESCENARIO=...` | Degrada el mundo |
