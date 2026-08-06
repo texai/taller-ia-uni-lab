@@ -1,10 +1,10 @@
 """La arquitectura cognitiva del agente, como grafo de LangGraph.
 
-    percepcion  ->  diagnostico  ->  reflexion  ->  recomendacion
-         ^                              |   |            ^
-         +------ (falta evidencia) -----+   |            |
-                                            +-> revision +
-                                        (la critica quedo en pie)
+    percepcion -> diagnostico -> reflexion -> recomendacion -> accion
+         ^                          |   |          ^
+         +---- (falta evidencia) ---+   |          |
+                                        +-> revision
+                                    (la critica quedo en pie)
 
 Cada nodo tiene un trabajo y solo uno:
 
@@ -17,6 +17,8 @@ Cada nodo tiene un trabajo y solo uno:
 - **revision**: si la critica sigue en pie y ya no quedan vueltas, reescribe
   el diagnostico haciendose cargo de ella.
 - **recomendacion**: emite acciones concretas y accionables.
+- **accion**: ejecuta las que una politica de codigo deja pasar. Sin LLM: ver
+  `agente/accion.py`.
 
 La reflexion es lo que separa a este agente de un dashboard con umbrales:
 antes de alertar, se cuestiona a si mismo. Pero cuestionarse sin poder
@@ -27,6 +29,7 @@ propias recomendaciones -- y por eso existe revision.
 from __future__ import annotations
 
 import json
+import os
 from datetime import date
 from typing import Annotated, Any, Literal, TypedDict
 
@@ -36,10 +39,16 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 
 from agente import memoria
+from agente.accion import evaluar, ejecutar
 from agente.herramientas import HERRAMIENTAS
 from agente.llm import obtener_llm
 
 MAX_VUELTAS = 2
+
+# Actuar esta apagado por omision. Un agente que reentrena solo la primera vez
+# que alguien lo corre es una sorpresa desagradable; que haya que encenderlo a
+# mano es parte de la leccion.
+EJECUTAR_ACCIONES = os.getenv("EJECUTAR_ACCIONES", "").strip() in ("1", "true", "si")
 
 
 class Estado(TypedDict):
@@ -49,6 +58,7 @@ class Estado(TypedDict):
     hipotesis: dict[str, Any]
     critica: dict[str, Any]
     recomendaciones: list[dict[str, Any]]
+    acciones: list[dict[str, Any]]
     vueltas: int
 
 
@@ -295,7 +305,9 @@ def recomendacion(estado: Estado) -> dict:
   "recomendaciones": [
     {
       "accion": "reentrenar | revisar_datos | investigar | ninguna",
-      "objetivo": "modelo, categoria o tienda sobre la que actuar",
+      "objetivo": "en palabras: sobre que actuar",
+      "objetivo_tipo": "categoria | tienda | modelo_id | flota",
+      "objetivo_valor": "el nombre exacto, tal como aparece en la telemetria (vacio si es flota)",
       "urgencia": "inmediata | esta_semana | monitorear",
       "justificacion": "una frase",
       "resultado_esperado": "que deberia cambiar si esto funciona"
@@ -308,7 +320,12 @@ Reglas:
   malos empeora el modelo.
 - Si no hay hallazgos, devuelve una sola recomendacion con accion "ninguna".
 - Se especifico en el objetivo. "Revisar los modelos" no es accionable;
-  "reentrenar los 24 modelos de la categoria bebidas" si lo es."""
+  "reentrenar los 24 modelos de la categoria bebidas" si lo es.
+- `objetivo_tipo` y `objetivo_valor` se ejecutan tal cual: son el filtro con
+  el que la plataforma va a buscar los modelos. Usa nombres exactos de la
+  telemetria ("panaderia", "arequipa", "dem-panaderia-callao"), no
+  descripciones. Lo que marques como "inmediata" y "reentrenar" se dispara
+  de verdad."""
     )
     respuesta = llm.invoke(estado["mensajes"] + [peticion])
     datos = _json_de(respuesta, {"recomendaciones": []})
@@ -335,6 +352,27 @@ Reglas:
     }
 
 
+def accion(estado: Estado) -> dict:
+    """Ejecuta lo que la politica deja pasar. Sin LLM de por medio."""
+    if not EJECUTAR_ACCIONES:
+        return {"acciones": [_sin_ejecutar_todo(estado)]}
+    return {"acciones": ejecutar(estado["hipotesis"], estado["recomendaciones"])}
+
+
+def _sin_ejecutar_todo(estado: Estado) -> dict:
+    return {
+        "ejecutada": False,
+        "motivo": (
+            "modo solo-diagnostico: pon EJECUTAR_ACCIONES=1 para que el agente "
+            "dispare de verdad el reentrenamiento"
+        ),
+        "habria_ejecutado": [
+            d for d in evaluar(estado["hipotesis"], estado["recomendaciones"])
+            if d.get("ejecutable")
+        ],
+    }
+
+
 # --------------------------------------------------------------------------
 # Construccion del grafo
 # --------------------------------------------------------------------------
@@ -350,6 +388,7 @@ def construir():
     g.add_node("reflexion", reflexion)
     g.add_node("revision", revision)
     g.add_node("recomendacion", recomendacion)
+    g.add_node("accion", accion)
 
     g.add_edge(START, "percepcion")
     g.add_conditional_edges("percepcion", _hay_herramientas)
@@ -357,7 +396,8 @@ def construir():
     g.add_edge("diagnostico", "reflexion")
     g.add_conditional_edges("reflexion", _tras_reflexion)
     g.add_edge("revision", "recomendacion")
-    g.add_edge("recomendacion", END)
+    g.add_edge("recomendacion", "accion")
+    g.add_edge("accion", END)
 
     return g.compile()
 
@@ -370,5 +410,6 @@ def estado_inicial(fecha: date | None = None) -> Estado:
         "hipotesis": {},
         "critica": {},
         "recomendaciones": [],
+        "acciones": [],
         "vueltas": 0,
     }

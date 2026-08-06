@@ -48,13 +48,49 @@ def _mape(real: pd.Series, pred: pd.Series) -> float:
     return float(((real[mascara] - pred[mascara]).abs() / real[mascara]).mean() * 100)
 
 
-def entrenar(hasta: date, alpha: float = 1.0, verbose: bool = True) -> dict:
-    """Entrena la flota con datos hasta `hasta` inclusive."""
+def _registro_previo() -> dict[str, dict]:
+    ruta = RUTA_MODELOS / "registro.json"
+    if not ruta.exists():
+        return {}
+    return {r["modelo_id"]: r for r in json.loads(ruta.read_text(encoding="utf-8"))}
+
+
+def _seleccionar(solo: dict | None) -> list[dict]:
+    """Los modelos a entrenar. Sin filtro, la flota entera."""
+    modelos = todos_los_modelos()
+    if not solo:
+        return modelos
+    return [
+        m
+        for m in modelos
+        if all(m.get(clave) == valor for clave, valor in solo.items() if valor)
+    ]
+
+
+def entrenar(
+    hasta: date,
+    alpha: float = 1.0,
+    verbose: bool = True,
+    solo: dict | None = None,
+) -> dict:
+    """Entrena la flota con datos hasta `hasta` inclusive.
+
+    `solo` acota a un subconjunto: {"categoria": "panaderia"} reentrena esos
+    24 modelos y deja los otros 168 intactos, con su version anterior. Un
+    reentrenamiento de produccion casi nunca toca la flota completa: se
+    reentrena lo que se degrado, y el registro tiene que reflejar que
+    conviven versiones distintas.
+    """
     if not RUTA_VENTAS.exists():
         raise FileNotFoundError(
             f"No existe {RUTA_VENTAS}. Corre primero: make datos"
         )
 
+    objetivo = _seleccionar(solo)
+    if not objetivo:
+        return {"modelos": 0, "entrenado_hasta": hasta.isoformat(), "sin_coincidencias": solo}
+
+    previo = _registro_previo()
     ventas = pd.read_csv(RUTA_VENTAS, parse_dates=["fecha"])
     ventas = ventas[ventas["fecha"].dt.date <= hasta]
 
@@ -65,7 +101,7 @@ def entrenar(hasta: date, alpha: float = 1.0, verbose: bool = True) -> dict:
         mlflow.set_experiment(EXPERIMENTO)
 
     registro = []
-    for i, m in enumerate(todos_los_modelos(), start=1):
+    for i, m in enumerate(objetivo, start=1):
         serie = ventas[
             (ventas["tienda"] == m["tienda"])
             & (ventas["categoria"] == m["categoria"])
@@ -104,16 +140,29 @@ def entrenar(hasta: date, alpha: float = 1.0, verbose: bool = True) -> dict:
         registro.append(
             {
                 **m,
-                "version": 1,
+                "version": previo.get(m["modelo_id"], {}).get("version", 0) + 1,
                 "entrenado_hasta": hasta.isoformat(),
                 "mape_validacion": round(mape_val, 3),
                 "artefacto": str(ruta),
             }
         )
         if verbose and i % 48 == 0:
-            print(f"  {i}/192 modelos entrenados...")
+            print(f"  {i}/{len(objetivo)} modelos entrenados...")
 
+    # Los que no se tocaron conservan su version y su fecha: el registro debe
+    # mostrar la flota como esta de verdad, con modelos de distinta edad.
+    final = previo | {r["modelo_id"]: r for r in registro}
     (RUTA_MODELOS / "registro.json").write_text(
-        json.dumps(registro, indent=2, ensure_ascii=False), encoding="utf-8"
+        json.dumps(
+            sorted(final.values(), key=lambda r: r["modelo_id"]),
+            indent=2,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
     )
-    return {"modelos": len(registro), "entrenado_hasta": hasta.isoformat()}
+    return {
+        "modelos": len(registro),
+        "entrenado_hasta": hasta.isoformat(),
+        "alcance": solo or "flota completa",
+        "flota_total": len(final),
+    }

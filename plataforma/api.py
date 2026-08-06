@@ -1,25 +1,33 @@
-"""Telemetria de la plataforma: lo unico que el agente puede ver.
+"""Telemetria de la plataforma, y la unica puerta por la que se puede actuar.
 
-El agente no toca los artefactos ni los contenedores. Interroga esta API, igual
-que haria un ingeniero de guardia. En produccion nadie le da a un agente permiso
-de escritura sobre los modelos, y el taller respeta esa frontera.
+El agente no toca los artefactos ni los contenedores: interroga esta API, igual
+que haria un ingeniero de guardia. Casi todo lo que hay aca es de lectura.
+
+La excepcion es `POST /v1/reentrenar`, y su superficie es deliberadamente
+angosta: una sola ruta que escribe, con filtro explicito, motivo obligatorio y
+bitacora. Un agente que solo observa no puede romper nada; en cuanto puede
+actuar, el riesgo cambia de naturaleza y conviene que quepa entero en un
+archivo que alguien pueda leer de una sentada.
 """
 
 from __future__ import annotations
 
 import csv
 import json
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel
 
 from plataforma.config import (
+    RUTA_LOG_REENTRENAMIENTOS,
     RUTA_METRICAS,
     RUTA_MODELOS,
     RUTA_PREDICCIONES,
     RUTA_VENTAS,
 )
+from plataforma.entrenar import entrenar
 from plataforma.pronosticar import RUTA_LOG_JOB
 
 app = FastAPI(
@@ -141,3 +149,59 @@ def serie(modelo_id: str, dias: int = 90) -> dict[str, Any]:
 def corridas() -> list[dict[str, Any]]:
     """Historial del job batch. Un modelo puede estar sano y el job caido."""
     return _leer_csv(RUTA_LOG_JOB)
+
+
+class PeticionReentrenamiento(BaseModel):
+    """A quien reentrenar. Sin filtros, la flota completa."""
+
+    categoria: str | None = None
+    tienda: str | None = None
+    modelo_id: str | None = None
+    motivo: str = "sin motivo declarado"
+
+
+@app.post("/v1/reentrenar")
+def reentrenar(peticion: PeticionReentrenamiento) -> dict[str, Any]:
+    """Reentrena los modelos que coincidan con el filtro.
+
+    Es la unica ruta de la API que escribe. Todo lo demas es telemetria de
+    lectura: un agente que solo observa no puede romper nada, y en el momento
+    en que puede actuar el riesgo cambia de naturaleza.
+    """
+    solo = {
+        k: v
+        for k, v in (
+            ("categoria", peticion.categoria),
+            ("tienda", peticion.tienda),
+            ("modelo_id", peticion.modelo_id),
+        )
+        if v
+    }
+    inicio = datetime.now()
+    resultado = entrenar(hasta=date.today(), verbose=False, solo=solo)
+    if not resultado["modelos"]:
+        raise HTTPException(404, f"Ningun modelo coincide con {solo}")
+
+    registro = {
+        "momento": inicio.isoformat(timespec="seconds"),
+        "duracion_s": round((datetime.now() - inicio).total_seconds(), 1),
+        "motivo": peticion.motivo,
+        **resultado,
+    }
+    RUTA_LOG_REENTRENAMIENTOS.parent.mkdir(parents=True, exist_ok=True)
+    historial = []
+    if RUTA_LOG_REENTRENAMIENTOS.exists():
+        historial = json.loads(RUTA_LOG_REENTRENAMIENTOS.read_text(encoding="utf-8"))
+    historial.append(registro)
+    RUTA_LOG_REENTRENAMIENTOS.write_text(
+        json.dumps(historial, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return registro
+
+
+@app.get("/v1/reentrenamientos")
+def reentrenamientos() -> list[dict[str, Any]]:
+    """Que se reentreno, cuando y por que. La bitacora de las acciones."""
+    if not RUTA_LOG_REENTRENAMIENTOS.exists():
+        return []
+    return json.loads(RUTA_LOG_REENTRENAMIENTOS.read_text(encoding="utf-8"))

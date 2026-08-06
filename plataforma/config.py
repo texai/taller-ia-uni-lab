@@ -16,6 +16,7 @@ RUTA_METRICAS = RAIZ_DATOS / "metricas.csv"
 RUTA_MODELOS = RAIZ_DATOS / "modelos"
 RUTA_MLRUNS = RAIZ_DATOS / "mlruns"
 RUTA_ESTADO = RAIZ_DATOS / "estado.json"
+RUTA_LOG_REENTRENAMIENTOS = RAIZ_DATOS / "reentrenamientos.json"
 
 # (nombre, region, factor de tamano de la tienda)
 TIENDAS: list[tuple[str, str, float]] = [

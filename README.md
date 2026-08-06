@@ -41,7 +41,7 @@ Un **agente generativo con arquitectura cognitiva** que vigila la flota:
 | **Razonamiento** | Decide qué mirar, correlaciona señales, formula una hipótesis |
 | **Reflexión** | Cuestiona su propio diagnóstico antes de emitirlo |
 | **Revisión** | Si la crítica se sostiene, reescribe el diagnóstico |
-| **Acción** | Emite una recomendación fundamentada y dispara el reentrenamiento |
+| **Acción** | Ejecuta lo que una política de código deja pasar, y lo deja en bitácora |
 
 Más una **interfaz web** que muestra su ejecución paso a paso, el análisis y las
 recomendaciones.
@@ -147,6 +147,7 @@ make              # lista todos los comandos disponibles
 | `make agente ARGS="--verboso"` | Una corrida mostrando las herramientas que llamó |
 | `make memoria` | Qué diagnósticos recuerda el agente |
 | `make memoria ARGS="--limpiar"` | Borra la memoria |
+| `make actuar` | Corrida **con permiso para reentrenar de verdad** |
 | `make ui` | Interfaz en http://localhost:8501 |
 | `make mlflow` | Registro de modelos en http://localhost:5000 |
 | `make romper ESCENARIO=...` | Degrada el mundo |
@@ -164,6 +165,8 @@ make              # lista todos los comandos disponibles
 | `GET /v1/metricas` | Métricas diarias por modelo |
 | `GET /v1/series/{modelo_id}` | Pronóstico contra realidad de un modelo |
 | `GET /v1/job/corridas` | Historial del job batch |
+| `POST /v1/reentrenar` | La única ruta que escribe: reentrena un subconjunto |
+| `GET /v1/reentrenamientos` | Bitácora de lo que se reentrenó, cuándo y por qué |
 
 ---
 

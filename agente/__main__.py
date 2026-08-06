@@ -71,6 +71,19 @@ def correr(fecha: date | None, verboso: bool) -> None:
         print(f"  [{r.get('urgencia', '?')}] {r.get('accion')} → {r.get('objetivo')}")
         print(f"      {r.get('justificacion', '')}")
 
+    acciones = final.get("acciones", [])
+    if acciones:
+        _linea("ACCIÓN")
+        for a in acciones:
+            if a.get("ejecutada"):
+                print(f"  ✓ {a['accion']} → {a['objetivo']}")
+                print(f"      {a.get('modelos_reentrenados')} modelos "
+                      f"en {a.get('duracion_s')}s")
+                continue
+            print(f"  ✗ no se ejecutó: {a.get('motivo', 'sin motivo')}")
+            for d in a.get("habria_ejecutado", []):
+                print(f"      habría reentrenado: {d.get('filtro') or 'la flota'}")
+
     if hipotesis.get("tipo") != "sin_hallazgos":
         memoria.registrar(
             fecha=final["fecha"],
