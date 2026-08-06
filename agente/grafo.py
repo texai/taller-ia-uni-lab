@@ -104,9 +104,11 @@ def percepcion(estado: Estado) -> dict:
     llm = obtener_llm().bind_tools(HERRAMIENTAS)
 
     if not estado["mensajes"]:
-        instruccion = f"""{CONTEXTO}
-
-{memoria.resumen_para_prompt()}
+        # El system dice QUIEN eres; el turno humano, QUE te pido hoy. No es
+        # cosmetico: Anthropic manda el system en un parametro aparte de la
+        # peticion, asi que una conversacion de puro SystemMessage le llega con
+        # la lista de mensajes vacia y la API la rechaza.
+        encargo = f"""{memoria.resumen_para_prompt()}
 
 Hoy es {estado['fecha']}. Investiga el estado de la flota.
 
@@ -118,12 +120,16 @@ el problema sea de datos o del job.
 Llama las herramientas que necesites. Cuando tengas evidencia suficiente para
 sostener una conclusion, deja de llamar herramientas y resume lo que
 encontraste en texto plano."""
-        mensajes = [SystemMessage(content=instruccion)]
+        apertura = [SystemMessage(content=CONTEXTO), HumanMessage(content=encargo)]
     else:
-        mensajes = estado["mensajes"]
+        apertura = []
 
+    mensajes = estado["mensajes"] + apertura
     respuesta = llm.invoke(mensajes)
-    return {"mensajes": [respuesta]}
+    # La apertura viaja de vuelta al estado. Si no, al volver aca despues de
+    # llamar una herramienta el agente habria perdido su contexto y su encargo,
+    # y estaria razonando a ciegas sobre una lista de resultados sueltos.
+    return {"mensajes": apertura + [respuesta]}
 
 
 def _hay_herramientas(estado: Estado) -> Literal["herramientas", "diagnostico"]:
