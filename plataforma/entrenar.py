@@ -15,9 +15,13 @@ import json
 from datetime import date
 
 import joblib
-import mlflow
 import pandas as pd
 from sklearn.linear_model import Ridge
+
+try:
+    import mlflow
+except ImportError:  # el pipeline no depende del registro para funcionar
+    mlflow = None
 
 from plataforma.config import (
     RUTA_MLRUNS,
@@ -49,9 +53,10 @@ def entrenar(hasta: date, alpha: float = 1.0, verbose: bool = True) -> dict:
     ventas = ventas[ventas["fecha"].dt.date <= hasta]
 
     RUTA_MODELOS.mkdir(parents=True, exist_ok=True)
-    RUTA_MLRUNS.mkdir(parents=True, exist_ok=True)
-    mlflow.set_tracking_uri(f"file://{RUTA_MLRUNS}")
-    mlflow.set_experiment(EXPERIMENTO)
+    if mlflow is not None:
+        RUTA_MLRUNS.mkdir(parents=True, exist_ok=True)
+        mlflow.set_tracking_uri(f"file://{RUTA_MLRUNS}")
+        mlflow.set_experiment(EXPERIMENTO)
 
     registro = []
     for i, m in enumerate(todos_los_modelos(), start=1):
@@ -74,20 +79,21 @@ def entrenar(hasta: date, alpha: float = 1.0, verbose: bool = True) -> dict:
         ruta = RUTA_MODELOS / f"{m['modelo_id']}.joblib"
         joblib.dump(modelo, ruta)
 
-        with mlflow.start_run(run_name=m["modelo_id"]):
-            mlflow.log_params(
-                {
-                    "modelo_id": m["modelo_id"],
-                    "categoria": m["categoria"],
-                    "tienda": m["tienda"],
-                    "region": m["region"],
-                    "algoritmo": "Ridge",
-                    "alpha": alpha,
-                    "entrenado_hasta": hasta.isoformat(),
-                    "n_entrenamiento": len(X_tr),
-                }
-            )
-            mlflow.log_metric("mape_validacion", mape_val)
+        if mlflow is not None:
+            with mlflow.start_run(run_name=m["modelo_id"]):
+                mlflow.log_params(
+                    {
+                        "modelo_id": m["modelo_id"],
+                        "categoria": m["categoria"],
+                        "tienda": m["tienda"],
+                        "region": m["region"],
+                        "algoritmo": "Ridge",
+                        "alpha": alpha,
+                        "entrenado_hasta": hasta.isoformat(),
+                        "n_entrenamiento": len(X_tr),
+                    }
+                )
+                mlflow.log_metric("mape_validacion", mape_val)
 
         registro.append(
             {

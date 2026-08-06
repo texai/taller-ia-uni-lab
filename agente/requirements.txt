@@ -1,0 +1,12 @@
+langgraph==0.2.61
+langchain-core==0.3.29
+langchain-google-genai==2.0.8
+langchain-groq==0.2.3
+langchain-openai==0.2.14
+langchain-anthropic==0.3.1
+langchain-ollama==0.2.2
+httpx==0.28.1
+pandas==2.2.3
+numpy==2.2.1
+scipy==1.15.0
+pydantic==2.10.4

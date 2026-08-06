@@ -1,0 +1,79 @@
+name: taller-ia-uni-lab
+
+services:
+  # La plataforma: los 192 modelos en produccion y su telemetria.
+  plataforma:
+    build:
+      context: .
+      dockerfile: plataforma/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - datos:/datos
+      - ./plataforma:/app/plataforma
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/salud')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # El agente cognitivo. Se construye durante el taller.
+  agente:
+    build:
+      context: .
+      dockerfile: agente/Dockerfile
+    env_file:
+      - .env
+    environment:
+      URL_PLATAFORMA: http://plataforma:8000
+    volumes:
+      - ./agente:/app/agente
+      - memoria:/memoria
+    depends_on:
+      plataforma:
+        condition: service_healthy
+
+  # La interfaz del agente. Se construye durante el taller.
+  ui:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    env_file:
+      - .env
+    environment:
+      URL_PLATAFORMA: http://plataforma:8000
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./agente:/app/agente
+      - ./ui:/app/ui
+      - memoria:/memoria
+    depends_on:
+      plataforma:
+        condition: service_healthy
+
+  # Registro de modelos. Opcional: docker compose --profile mlflow up -d mlflow
+  mlflow:
+    build:
+      context: .
+      dockerfile: plataforma/Dockerfile
+    profiles: ["mlflow"]
+    command: mlflow ui --host 0.0.0.0 --port 5000 --backend-store-uri file:///datos/mlruns
+    ports:
+      - "5000:5000"
+    volumes:
+      - datos:/datos
+
+  # Modelo local, para quien no tenga llave. docker compose --profile local up -d ollama
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["local"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
+volumes:
+  datos:
+  memoria:
+  ollama:

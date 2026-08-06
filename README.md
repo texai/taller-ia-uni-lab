@@ -1,1 +1,146 @@
-# taller-ia-uni-lab
+# Taller 02 de caso aplicado de IA en industria
+
+**II Programa de Especialización en IA Generativa y Machine Learning Ops**
+Sábado 8 de agosto, 15:00–19:00 · Domingo 9 de agosto, 09:00–13:00
+
+---
+
+## El caso
+
+Una cadena de retail con **24 tiendas** y **8 categorías** pronostica su demanda
+todas las noches. Un modelo por tienda y categoría: **192 modelos en producción**.
+Cada madrugada un job los carga, proyecta los próximos 14 días, y con eso se
+decide qué reponer.
+
+Los modelos funcionan. Hasta que dejan de funcionar.
+
+Entra una campaña promocional más agresiva que cualquiera del entrenamiento y
+una categoría entera empieza a fallar en las 24 tiendas a la vez. O peor: la
+demanda cae despacio, el modelo sigue pronosticando como antes, y la cadena
+acumula sobre-stock durante tres semanas. El MAPE se mantiene bajo el umbral de
+alerta. Nadie se entera.
+
+Hoy alguien abre un Excel los lunes y revisa las cinco categorías más grandes.
+Los otros 152 modelos nadie los mira.
+
+## Lo que vamos a construir
+
+Un **agente generativo con arquitectura cognitiva** que vigila la flota:
+
+| Capa | Qué hace |
+|---|---|
+| **Percepción** | Consulta la telemetría, calcula drift, detecta anomalías |
+| **Memoria** | Recuerda diagnósticos previos: no repite alertas ni se contradice |
+| **Razonamiento** | Decide qué mirar, correlaciona señales, formula una hipótesis |
+| **Reflexión** | Cuestiona su propio diagnóstico antes de emitirlo |
+| **Acción** | Emite una recomendación fundamentada y dispara el reentrenamiento |
+
+Más una **interfaz web** que muestra su ejecución paso a paso, el análisis y las
+recomendaciones.
+
+---
+
+# Trabajo previo — hazlo ANTES del sábado
+
+> Unos 20 minutos, casi todos de descarga. **No lo dejes para el sábado**: si lo
+> haces a las 15:00 vas a pasar la primera hora bajando imágenes en vez de
+> construyendo el agente.
+
+## 1. Verifica lo que ya tienes
+
+```bash
+docker --version          # Docker 24 o superior
+docker compose version    # Compose v2
+git --version
+```
+
+## 2. Levanta el entorno
+
+```bash
+git clone https://github.com/texai/taller-ia-uni-lab.git
+cd taller-ia-uni-lab
+cp .env.example .env
+docker compose build
+make arriba
+make seed
+```
+
+`make seed` genera el histórico de ventas, entrena los 192 modelos, corre el job
+de pronóstico y calcula las métricas. Tarda unos minutos la primera vez.
+
+## 3. Consigue tu llave
+
+Abre `.env` y completa **solo la línea de tu proveedor**:
+
+```dotenv
+PROVEEDOR_LLM=google
+MODELO_LLM=gemini-2.0-flash
+GOOGLE_API_KEY=...
+```
+
+**Opciones gratuitas** (recomendadas — sácala antes del sábado):
+
+- **Google AI Studio** → [aistudio.google.com](https://aistudio.google.com) · llave instantánea con tu cuenta de Google
+- **Groq** → [console.groq.com](https://console.groq.com) · llave instantánea
+
+Si ya pagas OpenAI o Anthropic, también funcionan. Y si prefieres no usar
+ninguna nube:
+
+```bash
+make ollama       # descarga ~2 GB, hazlo antes del sábado
+# y en .env:  PROVEEDOR_LLM=ollama
+```
+
+Último recurso para no quedarte trabado: `PROVEEDOR_LLM=mock`.
+
+## 4. Verifica
+
+Abre **http://localhost:8501**. Debes ver un mensaje verde con *192 modelos en
+producción* y un gráfico de MAPE por categoría.
+
+Si lo ves, estás listo. Si no, escribe **antes del sábado** al foro del aula
+virtual con el error exacto que te aparece.
+
+---
+
+## Referencia
+
+```bash
+make              # lista todos los comandos disponibles
+```
+
+| Comando | Qué hace |
+|---|---|
+| `make arriba` / `make abajo` | Levanta o apaga el entorno |
+| `make seed` | Pipeline completo desde cero |
+| `make datos` | Genera el histórico de ventas |
+| `make entrenar` | Entrena los 192 modelos |
+| `make pronosticar` | Corre el job batch |
+| `make metricas` | Cruza pronóstico contra realidad |
+| `make agente` | Una corrida del agente |
+| `make ui` | Interfaz en http://localhost:8501 |
+| `make mlflow` | Registro de modelos en http://localhost:5000 |
+| `make romper ESCENARIO=...` | Degrada el mundo |
+| `make reparar` | Vuelve al mundo sano |
+| `make reset` | Botón de pánico: borra todo y reconstruye |
+
+**Escenarios de degradación:** `campana_promocional`, `sesgo_silencioso`,
+`feed_caido`, `quiebre_stock`.
+
+**API de la plataforma** — `http://localhost:8000/docs` para explorarla:
+
+| Endpoint | Devuelve |
+|---|---|
+| `GET /v1/modelos` | Inventario de la flota |
+| `GET /v1/metricas` | Métricas diarias por modelo |
+| `GET /v1/series/{modelo_id}` | Pronóstico contra realidad de un modelo |
+| `GET /v1/job/corridas` | Historial del job batch |
+
+---
+
+## Nota sobre los datos
+
+El histórico es **sintético** y la cadena es ficticia. La mecánica de
+degradación sí reproduce modos de falla reales de sistemas de pronóstico en
+producción. Lo que aprendas acá es transferible: el agente sirve para vigilar
+cualquier flota de modelos que emita predicciones evaluables contra la realidad.
