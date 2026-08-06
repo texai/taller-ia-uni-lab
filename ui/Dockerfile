@@ -2,8 +2,12 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY ui/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# La interfaz corre el agente en vivo, asi que necesita sus dependencias. Se
+# instalan desde el mismo archivo que usa el contenedor del agente para que no
+# existan dos listas que se puedan desincronizar.
+COPY agente/requirements.txt ./requirements-agente.txt
+COPY ui/requirements.txt ./requirements-ui.txt
+RUN pip install --no-cache-dir -r requirements-agente.txt -r requirements-ui.txt
 
 COPY agente/ ./agente/
 COPY ui/ ./ui/
