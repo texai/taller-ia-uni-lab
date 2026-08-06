@@ -1,0 +1,119 @@
+/* @theme taller */
+
+/*
+ * Sobrio a proposito. El material de esta clase son numeros medidos y salidas
+ * reales de terminal; lo que tiene que leerse desde la ultima fila es el dato,
+ * no la decoracion.
+ */
+
+@import 'default';
+
+section {
+  background: #0f1115;
+  color: #e6e6e6;
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 26px;
+  padding: 60px 70px;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  color: #fff;
+  font-size: 52px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.3em;
+}
+
+h2 {
+  color: #fff;
+  font-size: 38px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  border-bottom: 2px solid #2a2f3a;
+  padding-bottom: 0.25em;
+}
+
+h3 {
+  color: #9aa4b2;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+strong { color: #fff; }
+em { color: #7dd3a0; font-style: normal; }
+
+a { color: #6ba8ff; }
+
+code {
+  background: #1a1f28;
+  color: #7dd3a0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+pre {
+  background: #1a1f28;
+  border: 1px solid #262c37;
+  border-radius: 8px;
+  font-size: 20px;
+  line-height: 1.45;
+}
+pre code { background: none; padding: 0; }
+
+table {
+  font-size: 22px;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+}
+th {
+  color: #9aa4b2;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 2px solid #2a2f3a;
+  padding: 8px 18px 8px 0;
+}
+td {
+  border-bottom: 1px solid #1e232c;
+  padding: 8px 18px 8px 0;
+}
+
+blockquote {
+  border-left: 3px solid #7dd3a0;
+  color: #b9c2cf;
+  margin-left: 0;
+  padding-left: 24px;
+  font-style: normal;
+}
+
+ul, ol { line-height: 1.55; }
+li { margin-bottom: 0.35em; }
+
+/* Portadas y cortes de seccion */
+section.portada {
+  background: #0b0d11;
+  justify-content: center;
+}
+section.portada h1 { font-size: 62px; border: none; }
+section.portada h2 {
+  border: none;
+  color: #7dd3a0;
+  font-size: 30px;
+  font-weight: 500;
+}
+section.portada p { color: #6b7484; }
+
+/* Una sola idea, grande */
+section.golpe {
+  justify-content: center;
+  text-align: center;
+}
+section.golpe h1 { font-size: 58px; line-height: 1.15; }
+section.golpe p { color: #9aa4b2; font-size: 28px; }
+
+section.dato { justify-content: center; }
+section.dato h1 { font-size: 90px; color: #7dd3a0; margin-bottom: 0; }
+
+footer { color: #4a5262; font-size: 16px; }
+section::after { color: #4a5262; font-size: 16px; }
