@@ -49,6 +49,7 @@ que vas a construir es el agente que los vigila.
 | **Docker Desktop** | Con Docker Compose (viene incluido) |
 | **Disco** | **12 GB libres.** Es bastante; más abajo explico por qué y cómo recuperar 4 GB al terminar |
 | **Tiempo** | 20–30 minutos, casi todos de descarga |
+| **Docker abierto** | No basta con instalarlo: tiene que estar **corriendo** |
 
 No necesitas Python instalado. No necesitas GPU. No necesitas WSL2. No
 necesitas saber Docker más allá de copiar y pegar.
@@ -166,8 +167,9 @@ make seed
 
 Qué hace cada cosa:
 
-- **`arriba`** construye las imágenes la primera vez (unos 3 minutos con buena
-  conexión) y levanta la plataforma.
+- **`arriba`** construye las tres imágenes la primera vez y levanta la
+  plataforma. **Entre 4 y 6 minutos** con buena conexión — es el paso largo, y
+  la razón principal para hacer esto antes del sábado.
 - **`seed`** genera el histórico de ventas, entrena los 192 modelos, corre el
   job de pronóstico y calcula las métricas. Menos de un minuto.
 
@@ -296,7 +298,9 @@ llamada corta para confirmar que el proveedor responde.
 |---|---|---|
 | `no se puede cargar el archivo taller.ps1` | Windows bloquea los scripts | Vuelve al paso 1.2 |
 | `unknown command: compose` | Falta Docker Compose | Instala Docker Desktop |
-| `Cannot connect to the Docker daemon` | Docker no está corriendo | Abre Docker Desktop y espera a que arranque del todo |
+| `Docker Desktop no esta corriendo` | Justo eso | Ábrelo y espera a que la ballena deje de moverse |
+| `open //./pipe/dockerDesktopLinuxEngine` | Lo mismo, dicho de forma críptica | Ábrelo y espera a que la ballena deje de moverse |
+| `Cannot connect to the Docker daemon` | Lo mismo, en macOS o Linux | Abre Docker Desktop y espera |
 | La instalación de Docker falla | Virtualización deshabilitada | Actívala en el BIOS: *Virtualization*, *VT-x* o *SVM* |
 | `no space left on device` | Disco lleno | `docker builder prune -f` libera ~4 GB sin tocar tus imágenes. Si no alcanza: `docker system prune -a` |
 | `port is already allocated` | Otro proceso usa el 8000 o el 8501 | Ciérralo, o avísame en el foro |

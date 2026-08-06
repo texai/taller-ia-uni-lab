@@ -45,7 +45,22 @@ function Get-Compose {
         Write-Host ""
         Write-Host "No encuentro Docker." -ForegroundColor Red
         Write-Host "Instala Docker Desktop:  https://www.docker.com/products/docker-desktop/"
-        Write-Host "Y asegurate de que este ABIERTO antes de correr esto."
+        Write-Host ""
+        exit 1
+    }
+
+    # Que el CLIENTE exista no significa que el MOTOR este vivo: `docker` y
+    # `docker compose version` responden perfectamente con Docker Desktop
+    # cerrado. Sin esta comprobacion, el primer comando real falla con un
+    # mensaje sobre un named pipe que no le dice nada a nadie.
+    docker info *> $null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "Docker Desktop no esta corriendo." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "  1. Abrelo desde el menu Inicio"
+        Write-Host "  2. Espera a que el icono de la ballena deje de moverse"
+        Write-Host "  3. Vuelve a correr este comando"
         Write-Host ""
         exit 1
     }
@@ -134,7 +149,14 @@ switch ($Comando) {
         Write-Host ""
     }
 
-    'arriba'      { Invoke-Compose @('up', '-d', 'plataforma', 'ui') }
+    'arriba' {
+        # Construye las TRES imagenes, no solo las dos que se levantan. El
+        # contenedor del agente no corre como servicio, asi que sin esto su
+        # construccion queda pendiente y le cae encima al alumno la primera vez
+        # que lo usa -- que es en plena clase, no durante el trabajo previo.
+        Invoke-Compose @('build')
+        Invoke-Compose @('up', '-d', 'plataforma', 'ui')
+    }
     'abajo'       { Invoke-Compose @('down') }
     'estado'      { Invoke-Compose @('ps') }
     'logs'        { Invoke-Compose (@('logs', '-f') + $Resto) }

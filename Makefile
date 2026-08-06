@@ -28,6 +28,17 @@ ayuda:  ## Muestra esta ayuda
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
 arriba:  ## Levanta la plataforma y la interfaz
+	@docker info >/dev/null 2>&1 || ( \
+	  echo ""; \
+	  echo "Docker no esta corriendo."; \
+	  echo "Abre Docker Desktop, espera a que termine de arrancar, y reintenta."; \
+	  echo ""; \
+	  exit 1 )
+	# Construye las TRES imagenes, no solo las dos que se levantan. El
+	# contenedor del agente no corre como servicio, asi que sin esto su
+	# construccion queda pendiente y le cae encima al alumno la primera vez que
+	# lo usa -- que es en plena clase, no durante el trabajo previo.
+	$(COMPOSE) build
 	$(COMPOSE) up -d plataforma ui
 
 abajo:  ## Apaga todo
