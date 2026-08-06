@@ -253,8 +253,25 @@ Reglas:
     )
     respuesta = llm.invoke(estado["mensajes"] + [peticion])
     datos = _json_de(respuesta, {"recomendaciones": []})
+    recomendaciones = datos.get("recomendaciones") or []
+    if not recomendaciones:
+        # Terminar en silencio es la peor salida posible: el turno de guardia
+        # cierra sin decir que hacer y nadie sabe si es que no hay nada o si
+        # es que el agente se cayo.
+        recomendaciones = [
+            {
+                "accion": "investigar",
+                "objetivo": estado["hipotesis"].get("alcance", "flota"),
+                "urgencia": "monitorear",
+                "justificacion": (
+                    "El agente no logro emitir recomendaciones estructuradas "
+                    "para este diagnostico. Revisar a mano."
+                ),
+                "resultado_esperado": "n/d",
+            }
+        ]
     return {
-        "recomendaciones": datos.get("recomendaciones", []),
+        "recomendaciones": recomendaciones,
         "mensajes": [peticion, respuesta],
     }
 

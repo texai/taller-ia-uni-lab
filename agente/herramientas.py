@@ -31,11 +31,26 @@ from scipy import stats
 URL = os.getenv("URL_PLATAFORMA", "http://plataforma:8000")
 TIEMPO_ESPERA = 60.0
 
-# Cuanto tiene que moverse una senal para que valga la pena mirarla. Medidos
-# contra la flota sana, donde el MAPE de una categoria sube hasta 20% solo por
-# alejarse de su fecha de entrenamiento y el sesgo no se mueve ni 1.1 puntos.
-MIN_DELTA_MAPE_PCT = 25.0
-MIN_DELTA_SESGO_PP = 3.0
+# Cuanto tiene que moverse una senal para que valga la pena mirarla.
+#
+# El umbral depende de por donde cortes, y no por gusto: una categoria agrupa
+# 24 modelos y una tienda solo 8, asi que el promedio de una tienda se mueve
+# mucho mas por puro azar. Medido sobre la flota sana, donde nada esta roto:
+#
+#   dimension    max delta MAPE   max |delta sesgo|
+#   categoria         +19.6%           1.05 pp
+#   region            +15.2%           2.31 pp
+#   tienda            +48.4%           3.54 pp
+#
+# Un umbral unico calibrado con categorias marca tres tiendas sanas como
+# derivadas y cuatro como sesgadas. El agente cree lo que le dicen las
+# banderas, y con razon: el error no es suyo, es de quien puso el umbral.
+UMBRALES = {
+    #              MAPE %   sesgo pp
+    "categoria": (   25.0,      3.0),
+    "region":    (   25.0,      4.0),
+    "tienda":    (   60.0,      5.0),
+}
 
 
 def _get(ruta: str, **params) -> Any:
@@ -270,8 +285,9 @@ def comparar_periodos(
       cara y la mas silenciosa: no hace ruido en el MAPE y su linea base en
       una flota sana es practicamente cero, asi que cuando se mueve, se movio
       de verdad."""
-    if dimension not in ("categoria", "tienda", "region"):
-        return {"error": "dimension debe ser: categoria, tienda o region"}
+    if dimension not in UMBRALES:
+        return {"error": f"dimension debe ser: {', '.join(UMBRALES)}"}
+    min_mape, min_sesgo = UMBRALES[dimension]
 
     filas = _metricas()
     if not filas:
@@ -310,9 +326,9 @@ def comparar_periodos(
                 "p_valor": round(float(p), 6),
                 "deriva_de_error": bool(
                     p < 0.01
-                    and abs((mape_r - mape_b) / max(mape_b, 0.01) * 100) >= MIN_DELTA_MAPE_PCT
+                    and abs((mape_r - mape_b) / max(mape_b, 0.01) * 100) >= min_mape
                 ),
-                "deriva_de_sesgo": bool(abs(_sesgo(r) - _sesgo(b)) >= MIN_DELTA_SESGO_PP),
+                "deriva_de_sesgo": bool(abs(_sesgo(r) - _sesgo(b)) >= min_sesgo),
             }
         )
 
@@ -434,11 +450,25 @@ def estado_del_job() -> dict:
 @tool
 def detalle_modelo(modelo_id: str, dias: int = 30) -> dict:
     """Metricas diarias de un modelo puntual. Usalo cuando ya sabes cual
-    quieres mirar de cerca; no lo uses para explorar la flota."""
+    quieres mirar de cerca; no lo uses para explorar la flota.
+
+    El identificador es `dem-<categoria>-<tienda>`, por ejemplo
+    `dem-panaderia-callao`. No lo inventes: sale de listar_modelos o de las
+    listas de peores en resumen_flota."""
     filas = _metricas(modelo_id=modelo_id)
-    if not filas:
-        return {"error": f"Sin metricas para {modelo_id}"}
-    return {"modelo_id": modelo_id, "dias": filas[-dias:]}
+    if filas:
+        return {"modelo_id": modelo_id, "dias": filas[-dias:]}
+
+    # Un "no existe" a secas invita a reintentar con otra variante del nombre,
+    # y ahi se van cinco llamadas. Mejor decirle exactamente cual quiso pedir.
+    todos = sorted({f["modelo_id"] for f in _metricas()})
+    partes = {p for p in modelo_id.lower().replace("_", "-").split("-") if p != "dem"}
+    cercanos = [m for m in todos if partes and partes <= set(m.split("-"))]
+    return {
+        "error": f"No existe el modelo {modelo_id!r}.",
+        "formato": "dem-<categoria>-<tienda>, por ejemplo dem-panaderia-callao",
+        "quiza_buscabas": cercanos[:8] or todos[:5],
+    }
 
 
 HERRAMIENTAS = [

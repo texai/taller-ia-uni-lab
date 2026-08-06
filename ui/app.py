@@ -42,6 +42,12 @@ st.success(
 
 metricas = pd.DataFrame(httpx.get(f"{URL}/v1/metricas", timeout=60).json())
 metricas["fecha"] = pd.to_datetime(metricas["fecha"])
+# La API tipa las columnas que conoce, pero un contenedor que lleva rato
+# levantado corre el codigo con el que arranco. Antes que reventar por una
+# columna que llego como texto, se convierte aca.
+for col in ("mape", "sesgo_pct", "cobertura", "unidades_reales", "unidades_pronosticadas"):
+    if col in metricas:
+        metricas[col] = pd.to_numeric(metricas[col], errors="coerce")
 
 ultimos = metricas[metricas["fecha"] >= metricas["fecha"].max() - pd.Timedelta(days=13)]
 
