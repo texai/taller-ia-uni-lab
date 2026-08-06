@@ -203,8 +203,11 @@ with agente_tab:
             f"veredicto: **{critica.get('veredicto', '?')}** · "
             f"vueltas: {final.get('vueltas', 0)}"
         )
-        for o in critica.get("objeciones", []):
+        objeciones = critica.get("objeciones") or []
+        for o in objeciones:
             st.markdown(f"- {o}")
+        if not objeciones:
+            st.caption("No se puso ninguna objecion a si mismo.")
         if corregido:
             st.success("El diagnostico de arriba ya incorpora estas objeciones.")
 

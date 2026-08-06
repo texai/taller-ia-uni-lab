@@ -9,6 +9,21 @@ reglas de abajo son codigo: se cumplen aunque el LLM este convencidisimo de lo
 contrario, y un prompt no las puede persuadir. El agente propone; estas reglas
 disponen.
 
+Las dos que hacen el trabajo pesado:
+
+- **Naturaleza del problema.** Si el diagnostico es una anomalia, el problema
+  esta en los datos y reentrenar ensena ruido. Nunca se ejecuta.
+- **Radio de daño.** Reentrenar una categoria toca 24 modelos; la flota, 192.
+  Lo segundo no tiene marcha atras util, porque no queda ningun modelo sano
+  contra el cual comparar. Eso lo firma una persona.
+
+Notese que la urgencia que declara el agente NO es una de las reglas. Fue la
+primera version y estaba mal: la urgencia es una opinion editorial suya, no una
+propiedad de seguridad. Reentrenar "esta semana" no es mas peligroso que
+reentrenar "ahora"; lo peligroso es reentrenar lo que no se debe, o demasiado
+de una vez. Lo unico que se respeta es "monitorear", porque ahi el agente
+mismo esta diciendo que todavia no hay que tocar nada.
+
 Es la misma idea que un ingeniero de guardia con acceso restringido: puede
 diagnosticar lo que sea, pero hay palancas que no estan a su alcance a las
 tres de la manana.
@@ -68,9 +83,9 @@ def evaluar(hipotesis: dict, recomendaciones: list[dict]) -> list[dict]:
                 )
             )
             continue
-        if rec.get("urgencia") != "inmediata":
+        if rec.get("urgencia") == "monitorear":
             veredicto.append(
-                _sin_ejecutar(rec, "solo se ejecuta lo marcado como inmediata")
+                _sin_ejecutar(rec, "el propio agente dijo que por ahora solo hay que vigilar")
             )
             continue
 
@@ -78,6 +93,19 @@ def evaluar(hipotesis: dict, recomendaciones: list[dict]) -> list[dict]:
         if objetivo is None:
             veredicto.append(
                 _sin_ejecutar(rec, "el objetivo no identifica modelos concretos")
+            )
+            continue
+        # Radio de daño. Reentrenar una categoria toca 24 modelos y se revierte
+        # entrenando de nuevo; reentrenar la flota toca los 192 a la vez, y si
+        # el diagnostico estaba mal no queda ninguno sano con que comparar.
+        # Una accion sin vuelta atras necesita una firma humana.
+        if not objetivo:
+            veredicto.append(
+                _sin_ejecutar(
+                    rec,
+                    "reentrenar la flota completa deja 192 modelos sin punto de "
+                    "comparacion: eso lo aprueba una persona",
+                )
             )
             continue
 

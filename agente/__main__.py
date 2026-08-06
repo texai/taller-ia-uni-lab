@@ -61,8 +61,11 @@ def correr(fecha: date | None, verboso: bool) -> None:
 
     _linea("REFLEXIÓN")
     print(f"  veredicto: {critica.get('veredicto')} · vueltas: {final.get('vueltas', 0)}")
-    for o in critica.get("objeciones", []):
+    objeciones = critica.get("objeciones") or []
+    for o in objeciones:
         print(f"    · {o}")
+    if not objeciones:
+        print("    (no se puso ninguna objeción a sí mismo)")
     if corregido:
         print("\n  El diagnóstico de arriba ya incorpora estas objeciones.")
 
