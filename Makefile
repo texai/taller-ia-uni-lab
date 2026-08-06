@@ -81,12 +81,12 @@ ui:  ## Abre la interfaz en http://localhost:8501
 	$(COMPOSE) up -d ui
 	@echo "http://localhost:8501"
 
-romper:  ## Degrada el mundo. Uso: make romper ESCENARIO=sesgo_silencioso
+romper:  ## Degrada los datos, rompe el mundo. Uso: make romper ESCENARIO=sesgo_silencioso
 	$(EN_PLATAFORMA) escenario --nombre $(ESCENARIO)
 	$(MAKE) pronosticar
 	$(MAKE) metricas
 
-reparar:  ## Vuelve al mundo sano
+reparar:  ## Regenera los datos limpios, vuelve al mundo sano
 	$(EN_PLATAFORMA) datos
 	$(MAKE) pronosticar
 	$(MAKE) metricas

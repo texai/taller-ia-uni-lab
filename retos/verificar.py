@@ -260,11 +260,11 @@ def main() -> None:
             print("¿Esta levantado el entorno?  make arriba && make seed")
         sys.exit(2)
 
-    # Las comprobaciones degradan el mundo a proposito, y la ultima lo deja
-    # roto. Devolverlo sano es parte del trabajo: nadie quiere descubrir a las
-    # 15:05 que la clase arranco con una tienda muda.
+    # Las comprobaciones degradan los datos a proposito, y la ultima los deja
+    # rotos. Devolverlos limpios es parte del trabajo: nadie quiere descubrir a
+    # las 15:05 que la clase arranco con una tienda muda.
     if any(x in pendientes for x in (2, 4)):
-        print(f"\n{GRIS}Dejando el mundo sano otra vez...{FIN}")
+        print(f"\n{GRIS}Regenerando los datos limpios (el mundo sano)...{FIN}")
         _mundo(None)
 
     print()

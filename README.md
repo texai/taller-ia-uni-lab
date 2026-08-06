@@ -155,8 +155,8 @@ make              # lista todos los comandos disponibles   (macOS / Linux)
 | `make actuar` | Corrida **con permiso para reentrenar de verdad** |
 | `make ui` | Interfaz en http://localhost:8501 |
 | `make mlflow` | Registro de modelos en http://localhost:5000 |
-| `make romper ESCENARIO=...` | Degrada el mundo |
-| `make reparar` | Vuelve al mundo sano |
+| `make romper ESCENARIO=...` | Degrada los datos: rompe el mundo |
+| `make reparar` | Regenera los datos limpios: vuelve al mundo sano |
 | `make reset` | Botón de pánico: borra todo y reconstruye |
 | `make verificar` | Comprueba que todo el laboratorio funciona |
 | `make verificar ARGS="--con-llm"` | Ídem, corriendo el agente de verdad |
