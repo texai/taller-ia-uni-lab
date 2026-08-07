@@ -27,7 +27,7 @@ veces, y eso son **36,000 unidades de más** en almacén. Un mismo cambio en el
 mundo: una señal apenas tiembla, la otra se multiplica. Solo una de las dos
 está hablando de plata.
 
-Hoy alguien abre un Excel los lunes y revisa las cinco categorías más grandes.
+Hoy alguien abre un Excel los lunes y revisa las cinco tiendas más grandes.
 Los otros 152 modelos nadie los mira.
 
 ## Lo que vamos a construir

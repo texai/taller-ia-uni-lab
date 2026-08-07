@@ -35,9 +35,16 @@ from plataforma.config import NOMBRES_CATEGORIAS, NOMBRES_TIENDAS, RUTA_VENTAS
 # Calibrado, no elegido a ojo. Una caida pareja mueve el MAPE y el sesgo la
 # misma cantidad de puntos; lo que los separa es de donde parten. Con este
 # valor el MAPE de la flota va de 13.8 a 14.5 -- ruido -- y los modelos sobre
-# el umbral de alerta pasan de 7 a 14 de 192, un movimiento por el que nadie
-# levanta el telefono. El sesgo, en cambio, va de +0.7% a +4.7%: seis veces,
-# y 36 mil unidades de sobre-stock.
+# el umbral de alerta se duplican, un movimiento por el que nadie levanta el
+# telefono. El sesgo, en cambio, va de +0.7% a +4.7%: seis veces, y unas 36 mil
+# unidades de sobre-stock.
+#
+# Cuidado con citar el conteo de modelos y las unidades al detalle. El mundo se
+# genera contra la fecha del dia (`datos.py`), asi que esas dos cifras se mueven
+# entre corridas: medido con umbral de MAPE > 25% en dos mundos generados con
+# cinco dias de diferencia, los modelos sobre umbral van 8 -> 16 en los dos, y
+# las unidades dan 36,981 y 36,338. El MAPE y el sesgo, en cambio, coinciden al
+# primer decimal.
 #
 # A 0.18, que es donde estaba, 57 de 192 modelos cruzaban el umbral. Eso ya no
 # es silencioso: cualquier tablero lo hubiera gritado, y el escenario dejaba de

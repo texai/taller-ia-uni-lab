@@ -53,13 +53,19 @@ escenario, el MAPE de la flota pasa de 13.8% a 14.5% y los modelos que cruzan
 el umbral de alerta pasan de 7 a 14 sobre 192. Si tu tablero alerta por MAPE,
 no suena nada.
 
-Pero el sesgo pasa de +0.7% a +4.7%. Son **36,567 unidades de más** en almacén
-en catorce días.
+Pero el sesgo pasa de +0.7% a +4.7%. Son **más de 36,000 unidades de más** en
+almacén en catorce días.
+
+> El MAPE y el sesgo son estables entre corridas; la cifra exacta de unidades y
+> el conteo de modelos sobre el umbral no lo son. El mundo se genera contra la
+> fecha del día (`datos.py`, `fin = hasta or date.today()`), así que tu número
+> va a parecerse al de acá sin ser idéntico. Medido en dos mundos generados con
+> cinco días de diferencia: 36,338 y 36,981 unidades.
 
 > **La pregunta que te llevas**: hiciste esto para dos escenarios y una
 > categoría. Ahora hazlo cada mañana, para 192 modelos, en ocho categorías,
 > veinticuatro tiendas y cinco regiones. ¿Cuánto tardas? ¿Y cuántos lunes
-> aguantas antes de mirar solo las cinco categorías más grandes?
+> aguantas antes de mirar solo las cinco tiendas más grandes?
 
 ---
 
