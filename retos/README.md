@@ -105,8 +105,8 @@ construyas encima no tiene salvación.
 
 ### Reto 3 — El primer agente, sin arquitectura
 
-**60 minutos.** Un bucle ReAct pelado: un LLM con herramientas, y nada más.
-Vive en `agente/pelado.py` y se corre con `make pelado` — **no** con
+**60 minutos.** Un bucle ReAct plano: un LLM con herramientas, y nada más.
+Vive en `agente/plano.py` y se corre con `make plano` — **no** con
 `make agente`, que levanta el grafo completo de la sesión 2 y corrige justo las
 patologías que este reto existe para enseñar.
 
@@ -120,7 +120,7 @@ convincente.
 
 ```bash
 make romper ESCENARIO=sesgo_silencioso
-make pelado ARGS="--verboso"
+make plano ARGS="--verboso"
 ```
 
 Corre el mismo escenario tres o cuatro veces y compara las salidas. Lo que vas

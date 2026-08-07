@@ -1,7 +1,7 @@
 """Ejecuta el agente.
 
     python -m agente run                      # una ejecucion
-    python -m agente pelado                   # el bucle ReAct del reto 3
+    python -m agente plano                    # el bucle ReAct del reto 3
     python -m agente run --fecha 2026-08-08
     python -m agente memoria                  # que recuerda
     python -m agente memoria --limpiar
@@ -14,7 +14,7 @@ import json
 from datetime import date
 
 from agente import memoria
-from agente import pelado
+from agente import plano
 from agente.grafo import construir, estado_inicial
 
 
@@ -113,7 +113,7 @@ def main() -> None:
     r.add_argument("--fecha", type=date.fromisoformat, default=None)
     r.add_argument("--verboso", action="store_true")
 
-    pel = sub.add_parser("pelado", help="El bucle ReAct pelado, sin grafo")
+    pel = sub.add_parser("plano", help="El bucle ReAct plano, sin grafo")
     pel.add_argument("--fecha", type=date.fromisoformat, default=None)
     pel.add_argument("--verboso", action="store_true")
 
@@ -124,8 +124,8 @@ def main() -> None:
 
     if args.cmd == "run":
         correr(args.fecha, args.verboso)
-    elif args.cmd == "pelado":
-        pelado.correr(args.fecha, args.verboso)
+    elif args.cmd == "plano":
+        plano.correr(args.fecha, args.verboso)
     elif args.cmd == "memoria":
         if args.limpiar:
             print(f"Memoria borrada ({memoria.limpiar()} diagnósticos).")

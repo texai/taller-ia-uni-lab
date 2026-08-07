@@ -19,7 +19,7 @@ EN_PLATAFORMA := $(COMPOSE) run --rm plataforma python -m plataforma
 EN_AGENTE := $(COMPOSE) run --rm agente python -m agente
 
 .PHONY: ayuda arriba abajo estado logs seed datos entrenar pronosticar metricas \
-        agente pelado memoria actuar ui romper reparar mlflow ollama reset
+        agente plano memoria actuar ui romper reparar mlflow ollama reset
 
 ayuda:  ## Muestra esta ayuda
 	@echo "Taller 02 de caso aplicado de IA en industria"
@@ -68,8 +68,8 @@ metricas:  ## Cruza pronostico contra realidad
 agente:  ## Una ejecucion del agente. ARGS="--verboso --fecha 2026-08-08"
 	$(EN_AGENTE) run $(ARGS)
 
-pelado:  ## El bucle ReAct del reto 3: un LLM con herramientas y nada mas
-	$(EN_AGENTE) pelado $(ARGS)
+plano:  ## El bucle ReAct del reto 3: un LLM con herramientas y nada mas
+	$(EN_AGENTE) plano $(ARGS)
 
 memoria:  ## Que recuerda el agente. ARGS="--limpiar" para borrarla
 	$(EN_AGENTE) memoria $(ARGS)

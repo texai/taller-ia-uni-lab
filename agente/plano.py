@@ -1,4 +1,4 @@
-"""El bucle ReAct pelado: un LLM con herramientas, y nada mas.
+"""El bucle ReAct plano: un LLM con herramientas, y nada mas.
 
 Es el reto 3, y existe como archivo aparte por una razon de contenido y no de
 codigo: el sabado hay que ver ESTO correr, no el grafo. Con `make agente` la
@@ -10,8 +10,8 @@ Pensar, actuar, observar, repetir. No hay mas. Ni un nodo que critique, ni uno
 que reescriba, ni nada que persista entre ejecuciones: cuando la clase pregunta
 que le falta, la respuesta esta en lo que este archivo NO tiene.
 
-    make pelado
-    make pelado ARGS="--fecha 2026-08-08"
+    make plano
+    make plano ARGS="--fecha 2026-08-08"
 """
 
 from __future__ import annotations
@@ -70,7 +70,7 @@ llamarlas y escribe tu diagnostico."""
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="agente-pelado", description=__doc__)
+    p = argparse.ArgumentParser(prog="agente-plano", description=__doc__)
     p.add_argument("--fecha", type=date.fromisoformat, default=None)
     p.add_argument("--verboso", action="store_true")
     args = p.parse_args()
