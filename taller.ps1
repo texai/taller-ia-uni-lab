@@ -121,7 +121,9 @@ $COMANDOS = [ordered]@{
     'pronosticar' = 'Corre el job batch de pronostico'
     'metricas'    = 'Cruza pronostico contra realidad'
     'agente'      = 'Una corrida del agente. Acepta --verboso y --fecha'
+    'plano'       = 'El bucle ReAct del reto 3: un LLM con herramientas y nada mas'
     'memoria'     = 'Que recuerda el agente. --limpiar para borrarla'
+    'senales'     = 'Como esta la flota, en cuatro numeros. Antes y despues de romper'
     'actuar'      = 'Corrida CON permiso para reentrenar de verdad'
     'verificar'   = 'Comprueba que todo funciona. --con-llm para la version completa'
     'ui'          = 'Abre la interfaz en http://localhost:8501'
@@ -168,7 +170,9 @@ switch ($Comando) {
     'metricas'    { Invoke-Plataforma @('metricas') }
 
     'agente'      { Invoke-Agente (@('run') + $Resto) }
+    'plano'       { Invoke-Agente (@('plano') + $Resto) }
     'memoria'     { Invoke-Agente (@('memoria') + $Resto) }
+    'senales'     { Invoke-Agente (@('senales') + $Resto) }
     'verificar'   { Invoke-Compose (@('run', '--rm', 'agente', 'python', '-m', 'retos.verificar') + $Resto) }
 
     'actuar' {
