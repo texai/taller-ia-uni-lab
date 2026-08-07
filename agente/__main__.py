@@ -5,6 +5,7 @@
     python -m agente run --fecha 2026-08-08
     python -m agente memoria                  # que recuerda
     python -m agente memoria --limpiar
+    python -m agente senales                  # como esta la flota, en 4 numeros
 """
 
 from __future__ import annotations
@@ -105,6 +106,36 @@ def correr(fecha: date | None, verboso: bool) -> None:
         print("  " + ", ".join(herramientas_usadas))
 
 
+def senales(dias: int) -> None:
+    """Como esta la flota ahora mismo, en cuatro numeros.
+
+    Existe porque casi ningun comando de este taller crea archivos: `romper` y
+    `reparar` reescriben un CSV que ya estaba y mueven un numero dentro. Un
+    `ls` da identico antes y despues —mismo nombre, mismas 17,472 filas, tres
+    centesimas de diferencia de tamano— asi que para ver que hizo un comando
+    hay que mirar la telemetria agregada, no el disco.
+
+    Es la sonda del taller: se corre antes y despues de cada `romper`, y la
+    diferencia entre las dos salidas es la leccion.
+    """
+    from agente.herramientas import resumen_flota
+
+    r = resumen_flota.invoke({"dias": dias})
+    if "error" in r:
+        print(r["error"])
+        return
+
+    g = r["global"]
+    print(f"Flota · ultimos {r['ventana_dias']} dias "
+          f"({r['desde']} a {r['hasta']}) · {r['modelos_evaluados']} modelos")
+    print(f"  MAPE medio        {g['mape_medio']:>8.1f} %")
+    print(f"  Sesgo de la flota {g['sesgo_pct']:>+8.1f} %")
+    print(f"  Cobertura media   {g['cobertura_media']:>8.3f}")
+    print(f"  Sobre el umbral   {g['modelos_con_mape_sobre_25']:>8} de "
+          f"{r['modelos_evaluados']} modelos")
+    print(f"  Unidades de mas   {g['unidades_de_mas']:>8,}")
+
+
 def main() -> None:
     p = argparse.ArgumentParser(prog="agente", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -120,6 +151,9 @@ def main() -> None:
     m = sub.add_parser("memoria", help="Qué recuerda el agente")
     m.add_argument("--limpiar", action="store_true")
 
+    s = sub.add_parser("senales", help="Cómo está la flota, en cuatro números")
+    s.add_argument("--dias", type=int, default=14)
+
     args = p.parse_args()
 
     if args.cmd == "run":
@@ -131,6 +165,8 @@ def main() -> None:
             print(f"Memoria borrada ({memoria.limpiar()} diagnósticos).")
         else:
             print(json.dumps(memoria.historial(), indent=2, ensure_ascii=False))
+    elif args.cmd == "senales":
+        senales(args.dias)
 
 
 if __name__ == "__main__":

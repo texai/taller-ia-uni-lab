@@ -19,7 +19,7 @@ EN_PLATAFORMA := $(COMPOSE) run --rm plataforma python -m plataforma
 EN_AGENTE := $(COMPOSE) run --rm agente python -m agente
 
 .PHONY: ayuda arriba abajo estado logs seed datos entrenar pronosticar metricas \
-        agente plano memoria actuar ui romper reparar mlflow ollama reset
+        agente plano memoria senales actuar ui romper reparar mlflow ollama reset
 
 ayuda:  ## Muestra esta ayuda
 	@echo "Taller 02 de caso aplicado de IA en industria"
@@ -73,6 +73,12 @@ plano:  ## El bucle ReAct del reto 3: un LLM con herramientas y nada mas
 
 memoria:  ## Que recuerda el agente. ARGS="--limpiar" para borrarla
 	$(EN_AGENTE) memoria $(ARGS)
+
+# La sonda del taller. Casi ningun comando de aqui crea archivos: `romper` y
+# `reparar` reescriben un CSV que ya estaba y mueven un numero dentro, asi que
+# un `ls` da identico antes y despues. Esto es lo que si cambia.
+senales:  ## Como esta la flota, en cuatro numeros. Correr antes y despues de romper
+	$(EN_AGENTE) senales $(ARGS)
 
 actuar:  ## Ejecucion CON permiso para reentrenar de verdad. Ojo con lo que pides
 	$(COMPOSE) run --rm -e EJECUTAR_ACCIONES=1 agente python -m agente run $(ARGS)
