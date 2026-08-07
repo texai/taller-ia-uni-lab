@@ -11,13 +11,17 @@ vigilando 192 modelos en producción, y una interfaz que muestra cómo razona.
 | **S2** | 4 | La arquitectura cognitiva | 90 min |
 | **S2** | 5 | De la recomendación a la acción | 60 min |
 
-Cada reto tiene su rama de solución: `reto-1-solucion`, `reto-2-solucion`, etc.
-Si te trabas, no pierdas la clase peleando:
+**El laboratorio viene completo.** Las herramientas, el grafo y la politica
+estan escritos: en cuatro horas no hay tiempo de depurar codigo, y si lo
+hubiera se iria en eso. El trabajo de cada reto es leer el archivo que se
+indica, correr los comandos y comprobar con el verificador:
 
 ```bash
-git stash              # guarda lo tuyo, no lo pierdes
-git checkout reto-2-solucion
+make verificar ARGS="--reto 2"
 ```
+
+Romperlo a proposito es la otra mitad del ejercicio, y para eso estan los
+cuatro escenarios.
 
 ---
 
@@ -102,6 +106,9 @@ construyas encima no tiene salvación.
 ### Reto 3 — El primer agente, sin arquitectura
 
 **60 minutos.** Un bucle ReAct pelado: un LLM con herramientas, y nada más.
+Vive en `agente/pelado.py` y se corre con `make pelado` — **no** con
+`make agente`, que levanta el grafo completo de la sesión 2 y corrige justo las
+patologías que este reto existe para enseñar.
 
 ```
 LLM  ⇄  herramientas
@@ -110,6 +117,11 @@ LLM  ⇄  herramientas
 Le das tus herramientas de percepción y le preguntas cómo va la flota. Va a
 funcionar. Va a llamar herramientas, va a encontrar cosas, va a sonar
 convincente.
+
+```bash
+make romper ESCENARIO=sesgo_silencioso
+make pelado ARGS="--verboso"
+```
 
 Corre el mismo escenario tres o cuatro veces y compara las salidas. Lo que vas
 a ver, y es el material de la Sesión 2:

@@ -148,7 +148,8 @@ make              # lista todos los comandos disponibles   (macOS / Linux)
 | `make entrenar` | Entrena los 192 modelos |
 | `make pronosticar` | Corre el job batch |
 | `make metricas` | Cruza pronóstico contra realidad |
-| `make agente` | Una ejecución del agente |
+| `make agente` | Una ejecución del agente (el grafo completo) |
+| `make pelado` | El bucle ReAct del reto 3, sin grafo |
 | `make agente ARGS="--verboso"` | Una ejecución mostrando las herramientas que llamó |
 | `make memoria` | Qué diagnósticos recuerda el agente |
 | `make memoria ARGS="--limpiar"` | Borra la memoria |
