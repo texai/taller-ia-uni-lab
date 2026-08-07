@@ -226,7 +226,7 @@ GROQ_API_KEY=tu-llave-aca
 
 ### Si ya pagas OpenAI o Anthropic
 
-También funcionan. Cada corrida del agente son unas diez llamadas a
+También funcionan. Cada ejecución del agente son unas diez llamadas a
 herramientas y tarda menos de un minuto, así que el gasto de las dos sesiones
 es modesto — pero si te preocupa el costo, usa una de las gratuitas de arriba,
 que para este taller rinden igual.

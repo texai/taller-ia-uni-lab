@@ -65,13 +65,13 @@ pronosticar:  ## Corre el job batch de pronostico
 metricas:  ## Cruza pronostico contra realidad
 	$(EN_PLATAFORMA) metricas
 
-agente:  ## Una corrida del agente. ARGS="--verboso --fecha 2026-08-08"
+agente:  ## Una ejecucion del agente. ARGS="--verboso --fecha 2026-08-08"
 	$(EN_AGENTE) run $(ARGS)
 
 memoria:  ## Que recuerda el agente. ARGS="--limpiar" para borrarla
 	$(EN_AGENTE) memoria $(ARGS)
 
-actuar:  ## Corrida CON permiso para reentrenar de verdad. Ojo con lo que pides
+actuar:  ## Ejecucion CON permiso para reentrenar de verdad. Ojo con lo que pides
 	$(COMPOSE) run --rm -e EJECUTAR_ACCIONES=1 agente python -m agente run $(ARGS)
 
 verificar:  ## Comprueba que todo funciona. ARGS="--con-llm" para la version completa

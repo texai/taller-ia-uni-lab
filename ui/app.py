@@ -187,7 +187,7 @@ with agente_tab:
                     tarea.update(label="Emitiendo recomendaciones...")
                     st.write("📋 Recomendaciones listas")
 
-            tarea.update(label="Corrida completa", state="complete", expanded=False)
+            tarea.update(label="Ejecucion completa", state="complete", expanded=False)
 
         if final is None:
             st.error("El grafo no produjo estado.")

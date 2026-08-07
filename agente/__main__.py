@@ -1,6 +1,6 @@
 """Ejecuta el agente.
 
-    python -m agente run                      # una corrida
+    python -m agente run                      # una ejecucion
     python -m agente run --fecha 2026-08-08
     python -m agente memoria                  # que recuerda
     python -m agente memoria --limpiar
@@ -107,7 +107,7 @@ def main() -> None:
     p = argparse.ArgumentParser(prog="agente", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    r = sub.add_parser("run", help="Una corrida del agente")
+    r = sub.add_parser("run", help="Una ejecucion del agente")
     r.add_argument("--fecha", type=date.fromisoformat, default=None)
     r.add_argument("--verboso", action="store_true")
 

@@ -19,7 +19,7 @@ import joblib
 import pandas as pd
 from sklearn.linear_model import Ridge
 
-# MLflow busca el SHA de git para etiquetar cada corrida. Dentro del contenedor
+# MLflow busca el SHA de git para etiquetar cada ejecucion. Dentro del contenedor
 # no hay git, y al no encontrarlo escupe un warning de veinte lineas que parece
 # un error grave y no lo es. Se lo decimos antes de importarlo.
 os.environ.setdefault("GIT_PYTHON_REFRESH", "quiet")

@@ -470,8 +470,8 @@ def detectar_anomalias(dias: int = 21) -> dict:
 def estado_del_job() -> dict:
     """Historial del job batch de pronostico: si corrio, cuanto tardo, si
     fallo. Un modelo puede estar perfectamente sano y el job caido."""
-    corridas = _get("/v1/job/corridas")
-    return {"corridas": corridas[-10:], "total_registradas": len(corridas)}
+    ejecuciones = _get("/v1/job/ejecuciones")
+    return {"ejecuciones": ejecuciones[-10:], "total_registradas": len(ejecuciones)}
 
 
 @tool

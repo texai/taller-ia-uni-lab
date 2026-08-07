@@ -31,7 +31,11 @@ from plataforma.datos import generar
 from plataforma.entrenar import entrenar
 from plataforma.escenario import ESCENARIOS, aplicar
 from plataforma.metricas import calcular
-from plataforma.pronosticar import RUTA_LOG_JOB, pronosticar as correr_job
+from plataforma.pronosticar import (
+    RUTA_LOG_JOB,
+    RUTA_LOG_JOB_VIEJA,
+    pronosticar as correr_job,
+)
 
 app = FastAPI(
     title="Plataforma de pronostico de demanda",
@@ -148,10 +152,19 @@ def serie(modelo_id: str, dias: int = 90) -> dict[str, Any]:
     }
 
 
-@app.get("/v1/job/corridas")
-def corridas() -> list[dict[str, Any]]:
+@app.get("/v1/job/ejecuciones")
+def ejecuciones() -> list[dict[str, Any]]:
     """Historial del job batch. Un modelo puede estar sano y el job caido."""
-    return _leer_csv(RUTA_LOG_JOB)
+    filas = _leer_csv(RUTA_LOG_JOB)
+    if filas:
+        return filas
+    # Compatibilidad con datos sembrados antes del cambio de nombre: mismo
+    # contenido, otra cabecera. Sin esto, quien hizo el trabajo previo la
+    # semana pasada abre esta herramienta en clase y le sale una lista vacia.
+    return [
+        {"fecha_ejecucion" if k == "fecha_corrida" else k: v for k, v in f.items()}
+        for f in _leer_csv(RUTA_LOG_JOB_VIEJA)
+    ]
 
 
 class PeticionReentrenamiento(BaseModel):
@@ -236,11 +249,11 @@ def montar_mundo(peticion: PeticionMundo) -> dict[str, Any]:
     # repronostica sobre el mundo nuevo. Reentrenar aqui borraria la evidencia
     # de la degradacion que acabamos de provocar.
     corte = date.today() - timedelta(days=91)
-    corrida = correr_job(desde=corte + timedelta(days=1), hasta=date.today(),
+    ejecucion = correr_job(desde=corte + timedelta(days=1), hasta=date.today(),
                          verbose=False)
     metricas_calculadas = calcular()
     return {
         "escenario": peticion.escenario or "sano",
-        "predicciones": corrida.get("predicciones"),
+        "predicciones": ejecucion.get("predicciones"),
         "filas_metricas": metricas_calculadas.get("filas"),
     }

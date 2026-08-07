@@ -34,7 +34,7 @@ def resumen_para_prompt(limite: int = 5) -> str:
     """Version compacta del historial, para meter en el prompt sin inflarlo."""
     previos = historial(limite)
     if not previos:
-        return "No hay diagnosticos previos. Esta es la primera corrida del agente."
+        return "No hay diagnosticos previos. Esta es la primera ejecucion del agente."
     lineas = []
     for d in previos:
         lineas.append(
@@ -72,7 +72,7 @@ def registrar(
 
 
 def limpiar() -> int:
-    """Borra la memoria. Util para volver a demostrar la primera corrida."""
+    """Borra la memoria. Util para volver a demostrar la primera ejecucion."""
     n = len(_cargar())
     if RUTA.exists():
         RUTA.unlink()

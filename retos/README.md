@@ -56,7 +56,7 @@ no suena nada.
 Pero el sesgo pasa de +0.7% a +4.7%. Son **más de 36,000 unidades de más** en
 almacén en catorce días.
 
-> El MAPE y el sesgo son estables entre corridas; la cifra exacta de unidades y
+> El MAPE y el sesgo son estables entre ejecuciones; la cifra exacta de unidades y
 > el conteo de modelos sobre el umbral no lo son. El mundo se genera contra la
 > fecha del día (`datos.py`, `fin = hasta or date.today()`), así que tu número
 > va a parecerse al de acá sin ser idéntico. Medido en dos mundos generados con

@@ -5,7 +5,7 @@ las predicciones. No hay ningun servicio HTTP: en pronostico de demanda nadie
 necesita una respuesta en 50 milisegundos, y este es el patron de despliegue
 dominante.
 
-Cada corrida deja una fila en el log del job (corrio, cuanto tardo, si fallo).
+Cada ejecucion deja una fila en el log del job (corrio, cuanto tardo, si fallo).
 El agente tambien vigila eso: un modelo puede estar sano y el job caido.
 """
 
@@ -29,7 +29,7 @@ from plataforma.config import (
 from plataforma.modelo import COLUMNAS, construir_features
 
 CAMPOS = [
-    "fecha_corrida",
+    "fecha_ejecucion",
     "fecha_objetivo",
     "modelo_id",
     "categoria",
@@ -41,8 +41,11 @@ CAMPOS = [
     "latencia_ms",
 ]
 
-RUTA_LOG_JOB = RUTA_PREDICCIONES.parent / "corridas_job.csv"
-CAMPOS_JOB = ["fecha_corrida", "estado", "modelos", "predicciones", "duracion_s"]
+RUTA_LOG_JOB = RUTA_PREDICCIONES.parent / "ejecuciones_job.csv"
+# El nombre viejo del archivo. Se lee, no se escribe: quien sembro antes del
+# cambio de nombre tiene su historial aca y no hay por que perderselo.
+RUTA_LOG_JOB_VIEJA = RUTA_PREDICCIONES.parent / "corridas_job.csv"
+CAMPOS_JOB = ["fecha_ejecucion", "estado", "modelos", "predicciones", "duracion_s"]
 
 
 def _cargar_flota() -> dict:
@@ -56,7 +59,7 @@ def _cargar_flota() -> dict:
 def pronosticar(
     desde: date, hasta: date, horizonte: int = HORIZONTE_DIAS, verbose: bool = True
 ) -> dict:
-    """Simula una corrida diaria del job por cada fecha del rango."""
+    """Simula una ejecucion diaria del job por cada fecha del rango."""
     inicio = time.time()
     ventas = pd.read_csv(RUTA_VENTAS, parse_dates=["fecha"])
     flota = _cargar_flota()
@@ -94,7 +97,7 @@ def pronosticar(
             objetivo = fila["fecha"].date()
             filas.append(
                 {
-                    "fecha_corrida": (objetivo - timedelta(days=1)).isoformat(),
+                    "fecha_ejecucion": (objetivo - timedelta(days=1)).isoformat(),
                     "fecha_objetivo": objetivo.isoformat(),
                     "modelo_id": mid,
                     "categoria": m["categoria"],
@@ -120,7 +123,7 @@ def pronosticar(
             w.writeheader()
         w.writerow(
             {
-                "fecha_corrida": date.today().isoformat(),
+                "fecha_ejecucion": date.today().isoformat(),
                 "estado": "ok",
                 "modelos": len(modelos_cargados),
                 "predicciones": len(filas),

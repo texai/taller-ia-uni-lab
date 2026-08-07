@@ -41,7 +41,7 @@ from plataforma.config import NOMBRES_CATEGORIAS, NOMBRES_TIENDAS, RUTA_VENTAS
 #
 # Cuidado con citar el conteo de modelos y las unidades al detalle. El mundo se
 # genera contra la fecha del dia (`datos.py`), asi que esas dos cifras se mueven
-# entre corridas: medido con umbral de MAPE > 25% en dos mundos generados con
+# entre ejecuciones: medido con umbral de MAPE > 25% en dos mundos generados con
 # cinco dias de diferencia, los modelos sobre umbral van 8 -> 16 en los dos, y
 # las unidades dan 36,981 y 36,338. El MAPE y el sesgo, en cambio, coinciden al
 # primer decimal.

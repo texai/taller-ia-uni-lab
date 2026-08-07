@@ -148,11 +148,11 @@ make              # lista todos los comandos disponibles   (macOS / Linux)
 | `make entrenar` | Entrena los 192 modelos |
 | `make pronosticar` | Corre el job batch |
 | `make metricas` | Cruza pronóstico contra realidad |
-| `make agente` | Una corrida del agente |
-| `make agente ARGS="--verboso"` | Una corrida mostrando las herramientas que llamó |
+| `make agente` | Una ejecución del agente |
+| `make agente ARGS="--verboso"` | Una ejecución mostrando las herramientas que llamó |
 | `make memoria` | Qué diagnósticos recuerda el agente |
 | `make memoria ARGS="--limpiar"` | Borra la memoria |
-| `make actuar` | Corrida **con permiso para reentrenar de verdad** |
+| `make actuar` | Ejecución **con permiso para reentrenar de verdad** |
 | `make ui` | Interfaz en http://localhost:8501 |
 | `make mlflow` | Registro de modelos en http://localhost:5000 |
 | `make romper ESCENARIO=...` | Degrada los datos: rompe el mundo |
@@ -171,7 +171,7 @@ make              # lista todos los comandos disponibles   (macOS / Linux)
 | `GET /v1/modelos` | Inventario de la flota |
 | `GET /v1/metricas` | Métricas diarias por modelo |
 | `GET /v1/series/{modelo_id}` | Pronóstico contra realidad de un modelo |
-| `GET /v1/job/corridas` | Historial del job batch |
+| `GET /v1/job/ejecuciones` | Historial del job batch |
 | `POST /v1/reentrenar` | La única ruta que escribe: reentrena un subconjunto |
 | `GET /v1/reentrenamientos` | Bitácora de lo que se reentrenó, cuándo y por qué |
 
