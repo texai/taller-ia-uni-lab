@@ -120,6 +120,7 @@ $COMANDOS = [ordered]@{
     'entrenar'    = 'Entrena los 192 modelos'
     'pronosticar' = 'Corre el job batch de pronostico'
     'metricas'    = 'Cruza pronostico contra realidad'
+    'consola'     = 'Un Python con pandas y /datos montado. Es el reto 1'
     'agente'      = 'Una corrida del agente. Acepta --verboso y --fecha'
     'plano'       = 'El bucle ReAct del reto 3: un LLM con herramientas y nada mas'
     'memoria'     = 'Que recuerda el agente. --limpiar para borrarla'
@@ -179,6 +180,8 @@ switch ($Comando) {
         Invoke-Compose (@('run', '--rm', '-e', 'EJECUTAR_ACCIONES=1', 'agente',
                           'python', '-m', 'agente', 'run') + $Resto)
     }
+
+    'consola'     { Invoke-Compose @('run', '--rm', 'plataforma', 'python') }
 
     'ui' {
         Invoke-Compose @('up', '-d', 'ui')

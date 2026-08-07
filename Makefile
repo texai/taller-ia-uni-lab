@@ -19,7 +19,7 @@ EN_PLATAFORMA := $(COMPOSE) run --rm plataforma python -m plataforma
 EN_AGENTE := $(COMPOSE) run --rm agente python -m agente
 
 .PHONY: ayuda arriba abajo estado logs seed datos entrenar pronosticar metricas \
-        agente plano memoria senales actuar ui romper reparar mlflow ollama reset
+        agente plano memoria senales actuar consola ui romper reparar mlflow ollama reset
 
 ayuda:  ## Muestra esta ayuda
 	@echo "Taller 02 de caso aplicado de IA en industria"
@@ -64,6 +64,13 @@ pronosticar:  ## Corre el job batch de pronostico
 
 metricas:  ## Cruza pronostico contra realidad
 	$(EN_PLATAFORMA) metricas
+
+# El reto 1 se hace "a mano, con la API y pandas", y hasta ahora no decia
+# DONDE. Los datos viven en un volumen de Docker, no en el disco de nadie: un
+# `pd.read_csv` desde el portatil no encuentra nada. Esto abre un Python que si
+# los ve, y no pide instalar Python ni pandas en la maquina de cada uno.
+consola:  ## Un Python con pandas y /datos montado. Es el reto 1
+	$(COMPOSE) run --rm plataforma python
 
 agente:  ## Una ejecucion del agente. ARGS="--verboso --fecha 2026-08-08"
 	$(EN_AGENTE) run $(ARGS)

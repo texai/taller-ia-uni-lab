@@ -39,7 +39,19 @@ de siempre.
 make romper ESCENARIO=campana_promocional
 ```
 
-Abre `http://localhost:8000/docs` y explora la telemetría. Responde:
+Abre `http://localhost:8000/docs` y explora la telemetría. Para cruzarla con
+pandas:
+
+```bash
+make consola          # o  .\taller.ps1 consola
+```
+
+Abre un Python dentro del contenedor de la plataforma, con pandas puesto y los
+datos montados en `/datos`. **Los datos viven en un volumen de Docker, no en tu
+disco**: un `pd.read_csv` desde tu portatil no encuentra nada, y la ruta buena
+es `/datos/metricas.csv`.
+
+Responde:
 
 1. ¿Cuál es el MAPE medio de la flota en los últimos 14 días?
 2. ¿Qué categoría está peor? ¿En cuántas tiendas?
