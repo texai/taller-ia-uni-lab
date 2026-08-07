@@ -129,6 +129,15 @@ virtual con el error exacto que te aparece.
 
 ---
 
+## Guías
+
+Seis hojas sueltas en [`guias/`](guias/), cada una sobre una cosa concreta:
+Docker en siete comandos, cómo se lee la telemetría, los cuatro escenarios,
+las siete herramientas, la anatomía del agente y qué hacer si algo falla. En
+markdown y en PDF.
+
+No sustituyen a la clase — son para tener al lado mientras se trabaja.
+
 ## Referencia
 
 ```bash
