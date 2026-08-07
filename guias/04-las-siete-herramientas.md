@@ -13,7 +13,7 @@ modelo puede mirar del mundo.
 |---|---|---|
 | `listar_modelos` | El inventario: cuántos, de qué categoría y región | Primero, para saber sobre qué trabaja |
 | `resumen_flota` | Salud de los 192: error, sesgo, cobertura y los peores | El punto de partida de cualquier diagnóstico |
-| `agregado_por` | Las métricas promediadas por categoría, tienda o región | Para ver la **forma** del problema |
+| `agregado_por` | Las métricas agregadas por categoría, tienda o región | Para ver la **forma** del problema |
 | `comparar_periodos` | Una ventana reciente contra una línea base, con test estadístico | Para decidir si algo **cambió de verdad** |
 | `detectar_anomalias` | Series cortadas, tiendas mudas, huecos en los datos | Antes de culpar al modelo |
 | `estado_del_job` | Si el job corrió, cuánto tardó, cuántas filas entregó | Un modelo puede estar sano y el job caído |
@@ -48,36 +48,26 @@ distinta según por dónde la cortes:
 - Un modelo suelto degradado → es otra cosa.
 
 Y hay una trampa que vas a ver el sábado. Con la flota **sana**, agrupando por
-región:
+región, los dos grupos más pequeños —ocho modelos cada uno— ocupan los dos
+bordes de la tabla: uno con el sesgo más alto de todos, +8.7%, y otro con el
+MAPE más bajo, 10.9. Lima, con 112 modelos, se queda plácidamente en el medio.
+Y nada está roto.
 
-```
-ORIENTE    8 modelos   mape 14.6   sesgo +8.7%
-LIMA     112 modelos   mape 13.8   sesgo −0.3%
-CENTRO     8 modelos   mape 10.9   sesgo +2.1%
-```
-
-Los dos grupos de ocho modelos ocupan los dos bordes de la tabla, y nada está
-roto. **El ruido no tiene signo: tiene tamaño de muestra.** Por eso un umbral
-único marca como rotos a los grupos chicos todos los días.
+**El ruido no tiene signo: tiene tamaño de muestra.** Por eso un umbral único
+marca como rotos a los grupos chicos todos los días.
 
 ---
 
 ## Una herramienta que falla bien
 
-```python
-→ detalle_modelo("panaderia_callao")
+El modelo se va a inventar un identificador —guion bajo donde iba guion— y eso
+va a pasar sí o sí. Lo que importa no es que falle: es **qué recibe cuando
+falla**. Un «no existe» a secas invita a reintentar con otra variante del
+nombre, y ahí se van cinco llamadas.
 
-{
-  "error": "No existe el modelo 'panaderia_callao'.",
-  "formato": "dem-<categoria>-<tienda>, por ejemplo dem-panaderia-callao",
-  "quiza_buscabas": ["dem-panaderia-callao"]
-}
-```
-
-El modelo se inventó el identificador —guion bajo donde iba guion— y eso va a
-pasar. Lo que importa no es que falle: es qué recibe cuando falla. Un «no
-existe» a secas invita a reintentar con otra variante del nombre, y ahí se van
-cinco llamadas.
+Nuestras herramientas devuelven, junto al error, el formato esperado del
+identificador y una lista de candidatos parecidos. Con eso el modelo corrige a
+la primera.
 
 **Una herramienta que falla muda convierte una llamada equivocada en tres.**
 
@@ -85,12 +75,7 @@ cinco llamadas.
 
 ## Probarlas sin agente
 
-No hace falta un LLM para mirar lo que devuelven. La API está detrás:
-
-```bash
-curl -s "http://localhost:8000/v1/metricas?categoria=bebidas" | head
-curl -s "http://localhost:8000/v1/modelos" | head
-```
-
-Y en `http://localhost:8000/docs` está la misma API con la interfaz de Swagger,
-que para explorar es más cómoda.
+No hace falta un LLM para mirar lo que devuelven: la API está detrás de todas.
+En `http://localhost:8000/docs` está la interfaz de Swagger, que permite
+lanzarlas desde el navegador y ver la respuesta cruda. Es la forma más cómoda
+de entender qué ve el agente antes de dejarlo razonar sobre ello.

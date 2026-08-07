@@ -9,27 +9,12 @@ telemetría. Esta guía es para seguir rompiendo cosas después del taller.
 
 ## Las tres recetas
 
-```bash
-make seed                              # crea el mundo desde cero
-make romper ESCENARIO=sesgo_silencioso # lo degrada
-make reparar                           # lo devuelve a sano
-```
+`make seed` crea el mundo desde cero. `make romper ESCENARIO=<nombre>` lo
+degrada. `make reparar` lo devuelve a sano.
 
 **`romper` y `reparar` son la misma receta con la primera línea cambiada:**
 donde una aplica un escenario, la otra regenera el histórico limpio. Las otras
-dos líneas son idénticas.
-
-```makefile
-romper:
-	$(EN_PLATAFORMA) escenario --nombre $(ESCENARIO)
-	$(MAKE) pronosticar
-	$(MAKE) metricas
-
-reparar:
-	$(EN_PLATAFORMA) datos
-	$(MAKE) pronosticar
-	$(MAKE) metricas
-```
+dos líneas —volver a pronosticar y volver a medir— son idénticas.
 
 Y lo importante es **lo que no está en ninguna de las dos: no hay `entrenar`.**
 El mundo cambia, se vuelve a correr el job con los modelos viejos, y se mide.
@@ -62,15 +47,9 @@ más de 36,000 unidades de más en almacén en catorce días, y **ningún tabler
 con umbral sobre el MAPE suena.** Nunca.
 
 **`feed_caido`.** Una tienda muda **no reporta ceros: no reporta nada.** Las
-filas desaparecen, igual que en producción.
-
-```python
-# Es la diferencia entre "vendimos cero" y "no sabemos cuánto vendimos",
-# y el agente tiene que notarla.
-if nombre == "feed_caido":
-    quedan = [f for f in filas
-              if not (f["tienda"] == tienda and fecha >= muda)]
-```
+filas simplemente desaparecen del archivo, igual que en producción. Es la
+diferencia entre «vendimos cero» y «no sabemos cuánto vendimos», y el agente
+tiene que notarla.
 
 Esa distinción —anomalía de datos contra degradación del modelo— es la decisión
 más cara del taller: sobre deriva se reentrena, sobre anomalía reentrenar
@@ -80,15 +59,13 @@ más cara del taller: sobre deriva se reentrena, sobre anomalía reentrenar
 
 ## Armarte escenarios propios
 
-`escenario` acepta tres parámetros más para acotar el daño:
+El comando `escenario` acepta tres parámetros más para acotar el daño:
+`--categoria`, `--tienda` y `--desde`. Con ellos puedes degradar solo carnes,
+solo Tacna, o solo desde una fecha, y ver cómo cambia la huella según de qué
+tamaño sea el grupo afectado.
 
-```bash
-docker compose run --rm plataforma python -m plataforma escenario \
-  --nombre sesgo_silencioso --categoria carnes --tienda tacna --desde 2026-07-15
-```
-
-Después, siempre: `make pronosticar && make metricas`. El comando te lo
-recuerda al terminar.
+Después, siempre: volver a pronosticar y volver a medir (`make pronosticar &&
+make metricas`). El propio comando te lo recuerda al terminar.
 
 > **Cuidado con apilar escenarios.** Sin un `make reparar` en medio, dos
 > escenarios se suman y las lecturas dejan de significar nada.

@@ -10,102 +10,67 @@ para que no te cuesten a ti.
 
 ## Lo primero, siempre
 
-```bash
-make verificar
-```
-
-Corre 24 comprobaciones sobre todo el laboratorio y termina diciendo cuáles
-pasaron. Si algo falla, la línea sale con `✗` y debajo el detalle con el número
-que salió — no «falló», sino qué se midió y qué se esperaba.
-
-Para un reto solo: `make verificar ARGS="--reto 2"`.
+`make verificar` corre 24 comprobaciones sobre todo el laboratorio y termina
+diciendo cuáles pasaron. Si algo falla, la línea sale marcada y debajo va el
+detalle con el número que salió — no «falló», sino qué se midió y qué se
+esperaba. Para un reto solo, se le pasa `ARGS="--reto 2"`.
 
 ---
 
 ## Docker
 
 **«Cannot connect to the Docker daemon».** Docker Desktop no está corriendo, o
-todavía está arrancando. Ábrelo, espera a que el icono deje de moverse.
+todavía está arrancando. Ábrelo y espera a que el icono deje de moverse.
 
 **«No space left on device» a mitad de la construcción.** Las imágenes ocupan
-unos 6 GB y la caché de construcción otro tanto.
-
-```bash
-docker builder prune -f
-```
-
-Deja 12 GB libres antes de empezar.
+unos 6 GB y la caché de construcción otro tanto. Límpiala con `docker builder
+prune -f` y deja 12 GB libres antes de empezar.
 
 **Cambiaste un archivo y no pasa nada.** Un 404 en una ruta que está en el
 archivo. Una interfaz que revienta por una columna. Un `git pull` que parece no
 haber hecho nada. Son tres síntomas del mismo error: **el contenedor sirve el
-código con el que arrancó**, no el que hay en disco.
-
-```bash
-docker compose restart plataforma
-```
-
-La pregunta que resuelve esto en cualquier laboratorio con volúmenes montados:
-**¿el proceso vio este archivo?**
+código con el que arrancó**, no el que hay en disco. Se arregla reiniciando el
+servicio (`docker compose restart plataforma`). La pregunta que resuelve esto
+en cualquier laboratorio con volúmenes montados: **¿el proceso vio este
+archivo?**
 
 ---
 
 ## Windows
 
-**`make` no existe.** Windows no lo trae. Usa el script equivalente:
-
-```powershell
-.\taller.ps1 arriba
-.\taller.ps1 romper sesgo_silencioso
-```
+**`make` no existe.** Windows no lo trae. Usa el script equivalente que está en
+la raíz del repositorio, `taller.ps1`, con el mismo nombre de tarea detrás:
+`arriba`, `seed`, `romper`, y los demás.
 
 **«No se puede cargar el archivo … porque la ejecución de scripts está
-deshabilitada».** Es la política de PowerShell:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-```
-
-Con `-Scope Process` solo afecta a esta ventana, que es lo que quieres.
+deshabilitada».** Es la política de PowerShell. Se levanta solo para esa
+ventana con `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`; con
+`-Scope Process` no toca nada más de tu máquina, que es lo que quieres.
 
 **Los finales de línea.** Git puede convertir los saltos al clonar y dejar los
 scripts con `CRLF`, que dentro de un contenedor Linux no arrancan. Si ves
-errores raros de sintaxis en un `.sh`:
-
-```bash
-git config --global core.autocrlf input
-```
-
-y vuelve a clonar.
+errores raros de sintaxis en un `.sh`, pon `core.autocrlf` en `input` y vuelve
+a clonar.
 
 ---
 
 ## El agente
 
-**No tengo llave de LLM.** El taller corre igual:
+**No tengo llave de LLM.** El taller corre igual: poniendo el proveedor en
+`mock` dentro de tu `.env` se recorren el bucle y el grafo enteros, así que
+sirve para comprobar el cableado. No razona — el diagnóstico sale con texto de
+relleno.
 
-```bash
-PROVEEDOR_LLM=mock
-```
-
-en tu `.env`. Recorre el bucle y el grafo enteros, así que sirve para comprobar
-el cableado. No razona — el diagnóstico sale con texto de relleno.
-
-**Las llaves gratuitas.** `google` (aistudio.google.com) y `groq`
-(console.groq.com) tienen nivel gratuito y funcionan bien para esto. Se elige
-en `.env` con `PROVEEDOR_LLM` y `MODELO_LLM`.
+**Las llaves gratuitas.** Google AI Studio y Groq tienen nivel gratuito y
+funcionan bien para esto. Se eligen en el `.env` con `PROVEEDOR_LLM` y
+`MODELO_LLM`.
 
 **El agente no llamó ninguna herramienta.** Si estás construyendo el grafo tú,
-es casi seguro esto:
-
-```python
-ToolNode(HERRAMIENTAS, messages_key="mensajes")
-```
-
-`ToolNode` busca una clave `messages` por omisión; nuestro estado la llama
-`mensajes`. Sin ese parámetro no encuentra nada que ejecutar, **no lanza
-ninguna excepción** y pasa de largo. El diagnóstico sale escrito sobre la nada,
-y se lee convincente.
+es casi seguro el nombre de la clave del estado: el nodo de herramientas de
+LangGraph busca una clave `messages` por omisión y el nuestro la llama
+`mensajes`. Sin decírselo no encuentra nada que ejecutar, **no lanza ninguna
+excepción** y pasa de largo. El diagnóstico sale escrito sobre la nada, y se
+lee convincente.
 
 ---
 
