@@ -41,8 +41,22 @@ sin ejercitar la parte que importaba.
 
 **5 · Promediar porcentajes.**
 El sesgo de un grupo no es el promedio de los sesgos de sus partes: es la
-diferencia de sus totales. Promediando, panadería marcaba **+9.2%** en un mundo
-intacto; como cociente de totales, **+0.7%**.
+diferencia de sus totales.
+
+Panadería es el caso extremo, y conviene citarlo con cuidado porque son dos
+cantidades distintas y la nota original las mezclaba. Medido sobre un mundo
+intacto:
+
+| | promediando % | cociente de totales |
+|---|---|---|
+| nivel, últimos 14 días | +9.4% | +6.7% |
+| delta contra la base de 45 días | +2.04 pp | +0.70 pp |
+
+El **+9.2%** que decía esta nota es el nivel promediando porcentajes; el
+**+0.7%** es el delta por cociente de totales. Comparados entre sí sugieren una
+inflación de trece veces, y no es eso: es 1.4× en el nivel y 3× en el delta.
+Las ocho categorías inflan hacia arriba, entre +1.1 y +3.4 pp de nivel — que es
+el argumento de verdad, porque ninguna infla hacia abajo.
 
 **6 · Medir lo normal con la ventana que auditas.**
 Una tienda muda tres semanas tiene mediana cero en esas tres semanas, así que
