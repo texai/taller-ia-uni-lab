@@ -273,7 +273,12 @@ def main() -> None:
         for f in r.fallos:
             print(f"  · {f}")
         sys.exit(1)
-    print(f"{VERDE}Las {r.total} comprobaciones pasaron.{FIN}")
+    # Con `--reto 3` y proveedor mock queda una sola comprobacion, y "Las 1
+    # comprobaciones pasaron" se proyecta delante de la clase.
+    if r.total == 1:
+        print(f"{VERDE}La comprobacion paso.{FIN}")
+    else:
+        print(f"{VERDE}Las {r.total} comprobaciones pasaron.{FIN}")
 
 
 if __name__ == "__main__":
