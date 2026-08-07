@@ -54,10 +54,10 @@ make romper ESCENARIO=sesgo_silencioso
 
 Y responde lo mismo. **Aquí está el punto del reto**: con este segundo
 escenario, el MAPE de la flota pasa de 13.8% a 14.5% y los modelos que cruzan
-el umbral de alerta pasan de 7 a 14 sobre 192. Si tu tablero alerta por MAPE,
+el umbral de alerta pasan de 8 a 16 sobre 192. Si tu tablero alerta por MAPE,
 no suena nada.
 
-Pero el sesgo pasa de +0.7% a +4.7%. Son **más de 36,000 unidades de más** en
+Pero el sesgo pasa de +0.8% a +4.7%. Son **más de 36,000 unidades de más** en
 almacén en catorce días.
 
 > El MAPE y el sesgo son estables entre ejecuciones; la cifra exacta de unidades y

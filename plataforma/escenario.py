@@ -36,7 +36,7 @@ from plataforma.config import NOMBRES_CATEGORIAS, NOMBRES_TIENDAS, RUTA_VENTAS
 # misma cantidad de puntos; lo que los separa es de donde parten. Con este
 # valor el MAPE de la flota va de 13.8 a 14.5 -- ruido -- y los modelos sobre
 # el umbral de alerta se duplican, un movimiento por el que nadie levanta el
-# telefono. El sesgo, en cambio, va de +0.7% a +4.7%: seis veces, y unas 36 mil
+# telefono. El sesgo, en cambio, va de +0.8% a +4.7%: seis veces, y unas 36 mil
 # unidades de sobre-stock.
 #
 # Cuidado con citar el conteo de modelos y las unidades al detalle. El mundo se
