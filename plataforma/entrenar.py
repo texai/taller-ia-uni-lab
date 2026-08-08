@@ -5,8 +5,14 @@ promociones — deliberadamente simple, porque el taller no trata de exprimir
 precision sino de vigilar modelos en produccion.
 
 Cada entrenamiento queda registrado en MLflow (almacen de archivos local, sin
-servidor) con sus parametros, su metrica de validacion y el artefacto. Es el
-mismo registro que usaron en el Modulo 2.
+servidor) con sus parametros y su metrica de validacion. Es el mismo registro
+que usaron en el Modulo 2: un experimento, `pronostico-demanda`, y dentro un
+run por modelo.
+
+El artefacto NO va dentro del run: el `.joblib` se escribe en /datos/modelos
+con `joblib.dump`, y la carpeta `artifacts/` de cada run queda vacia. Es
+deliberado -- el job de pronostico tiene que poder cargar los 192 modelos sin
+MLflow levantado, asi que manda `registro.json` y MLflow se queda con la ficha.
 """
 
 from __future__ import annotations
