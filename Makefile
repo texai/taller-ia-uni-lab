@@ -19,7 +19,8 @@ EN_PLATAFORMA := $(COMPOSE) run --rm plataforma python -m plataforma
 EN_AGENTE := $(COMPOSE) run --rm agente python -m agente
 
 .PHONY: ayuda arriba abajo estado logs seed datos entrenar pronosticar metricas \
-        agente plano memoria senales actuar consola ui romper reparar mlflow ollama reset
+        archivos agente plano memoria senales actuar consola ui romper reparar \
+        mlflow ollama reset
 
 ayuda:  ## Muestra esta ayuda
 	@echo "Taller 02 de caso aplicado de IA en industria"
@@ -64,6 +65,15 @@ pronosticar:  ## Corre el job batch de pronostico
 
 metricas:  ## Cruza pronostico contra realidad
 	$(EN_PLATAFORMA) metricas
+
+# La pregunta que hace todo el mundo al terminar el primer comando del taller:
+# `make seed` dice que dejo 192 modelos y 17,472 filas, y un `ls` en la carpeta
+# del repositorio no muestra ni un archivo nuevo. No fallo nada: /datos es un
+# VOLUMEN de Docker -- `volumes: datos:` al final de docker-compose.yml --, que
+# es almacenamiento que gestiona Docker y solo se ve desde dentro de un
+# contenedor. Sin este comando no hay forma de mirarlo.
+archivos:  ## Que hay en /datos. ARGS="--ver metricas.csv" para asomarte a uno
+	$(EN_PLATAFORMA) archivos $(ARGS)
 
 # El reto 1 se hace "a mano, con la API y pandas", y hasta ahora no decia
 # DONDE. Los datos viven en un volumen de Docker, no en el disco de nadie: un

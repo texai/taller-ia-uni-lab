@@ -120,6 +120,7 @@ $COMANDOS = [ordered]@{
     'entrenar'    = 'Entrena los 192 modelos'
     'pronosticar' = 'Corre el job batch de pronostico'
     'metricas'    = 'Cruza pronostico contra realidad'
+    'archivos'    = 'Que hay en /datos. --ver metricas.csv para asomarte a uno'
     'consola'     = 'Un Python con pandas y /datos montado. Es el reto 1'
     'agente'      = 'Una corrida del agente. Acepta --verboso y --fecha'
     'plano'       = 'El bucle ReAct del reto 3: un LLM con herramientas y nada mas'
@@ -169,6 +170,11 @@ switch ($Comando) {
     'entrenar'    { Invoke-Plataforma @('entrenar') }
     'pronosticar' { Invoke-Plataforma @('pronosticar') }
     'metricas'    { Invoke-Plataforma @('metricas') }
+
+    # /datos es un volumen de Docker, no una carpeta del disco: despues de
+    # `.\taller.ps1 seed` un `dir` en la carpeta del repositorio sale igual que
+    # antes. Esto es lo que deja verlo por dentro.
+    'archivos'    { Invoke-Plataforma (@('archivos') + $Resto) }
 
     'agente'      { Invoke-Agente (@('run') + $Resto) }
     'plano'       { Invoke-Agente (@('plano') + $Resto) }

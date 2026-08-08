@@ -6,6 +6,7 @@
     python -m plataforma metricas
     python -m plataforma escenario   --nombre sesgo_silencioso
     python -m plataforma seed        # encadena los cuatro primeros
+    python -m plataforma archivos    --ver metricas.csv
 
 En clase se usan los atajos del Makefile, pero conviene que los alumnos vean
 que detras no hay magia.
@@ -16,7 +17,7 @@ from __future__ import annotations
 import argparse
 from datetime import date, timedelta
 
-from plataforma import datos, entrenar, escenario, metricas, pronosticar
+from plataforma import archivos, datos, entrenar, escenario, metricas, pronosticar
 from plataforma.config import RUTA_VENTAS
 
 
@@ -56,6 +57,10 @@ def main() -> None:
 
     sub.add_parser("seed", help="Pipeline completo desde cero")
 
+    a = sub.add_parser("archivos", help="Que hay dentro del volumen /datos")
+    a.add_argument("--ver", default=None, help="Asomarse a uno: metricas.csv")
+    a.add_argument("--filas", type=int, default=5)
+
     args = p.parse_args()
     corte = _corte_por_defecto()
 
@@ -85,6 +90,12 @@ def main() -> None:
         print(f"Escenario '{r['escenario']}' aplicado desde {r['desde']}")
         print(f"  filas afectadas: {r['filas_afectadas']:,}")
         print("  ahora corre:  make pronosticar && make metricas")
+
+    elif args.cmd == "archivos":
+        if args.ver:
+            archivos.asomarse(args.ver, filas=args.filas)
+        else:
+            archivos.imprimir_inventario()
 
     elif args.cmd == "seed":
         print("1/4 Generando historico de ventas...")
